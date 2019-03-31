@@ -58,7 +58,7 @@ set config_clkperiod 5
 open_project $config_proj_name
 add_files $config_hwsrcdir/../top.cpp -cflags "-std=c++0x -I$config_lstmlibdir -I$config_hwsrcdir -I$config_hwsrcdir/../"
 
-add_files -tb $config_lstmhostlibdir/neuron.cpp -cflags "-std=c++0x -O0 -I$config_lstmlibdir -I$config_hwsrcdir -I$config_lstmhostlibdir -Iconfig_lstmdriverlibdir"
+add_files -tb $config_lstmhostlibdir/input_handling.cpp -cflags "-std=c++0x -O0 -I$config_lstmlibdir -I$config_hwsrcdir -I$config_lstmhostlibdir -Iconfig_lstmdriverlibdir"
 add_files -tb $config_lstmhostlibdir/lstm_inference.cpp -cflags "-std=c++0x -O0 -I$config_lstmlibdir -I$config_hwsrcdir -I$config_lstmhostlibdir -Iconfig_lstmdriverlibdir"
 add_files -tb $config_hwsrcdir/../../main.cpp -cflags "-std=c++0x -O0 -I$config_lstmlibdir -I$config_hwsrcdir -I$config_lstmhostlibdir -Iconfig_lstmdriverlibdir"
 
