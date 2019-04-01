@@ -34,7 +34,8 @@ This repo is a joint release of University of Kaiserslautern, [Microelectronic S
 In order to install it to your PYNQ (on PYNQ v2.0), connect to the board, open a terminal and type:
 
 ```
-sudo pip3.6 install git+https://github.com/xilinx/LSTM-PYNQ.git 
+sudo pip3.6 install git+https://github.com/ussamazahid96/LSTM-PYNQ.git
+sudo pip3.6 install git+https://github.com/ussamazahid96/LSTM-PYNQ.git (for PYNQ 2.4)
 ```
 
 This will install the LSTM-PYNQ package to your board, and create a **lstm** directory in the Jupyter home area. You will find the Jupyter notebooks to test the LSTM in this directory. 
