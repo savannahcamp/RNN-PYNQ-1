@@ -37,8 +37,8 @@ import os
 from glob import glob
 import site 
 
-if 'BOARD' not in os.environ or not (os.environ['BOARD'] == 'Pynq-Z1' or os.environ['BOARD'] == 'Pynq-Z2'):
-    print("Only supported on a Pynq Z1 or Z2 boards")
+if 'BOARD' not in os.environ or not (os.environ['BOARD'] == 'Pynq-Z1' or os.environ['BOARD'] == 'Pynq-Z2' or os.environ['BOARD'] == 'ZC706'):
+    print("Only supported on a ZC706, Pynq Z1 or Z2 boards")
     exit(1)
 
 setup(

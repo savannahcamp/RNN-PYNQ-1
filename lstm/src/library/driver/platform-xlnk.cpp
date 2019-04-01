@@ -40,6 +40,14 @@
 #include "platform.hpp"
 #include "xlnkdriver.hpp"
 
+#ifdef PYNQ
+  #define ADDR_REG_BASE 0x43c00000
+#elif defined ZC706
+  #define ADDR_REG_BASE 0x43c00000
+#else
+  #error Board is not supported. Can not set REG_BASE_ADDR
+#endif
+
 static XlnkDriver* platform = 0;
 
 void platformSIGINTHandler(int signum) {
@@ -52,7 +60,7 @@ void platformSIGINTHandler(int signum) {
 }
 DonutDriver* initPlatform(bool cleanSIGINTExit) {
 	if (!platform) {
-		platform = new XlnkDriver(0x43c00000, 64 * 1024);
+		platform = new XlnkDriver(ADDR_REG_BASE, 64 * 1024);
 	}
 	if (cleanSIGINTExit) {
 		struct sigaction action;

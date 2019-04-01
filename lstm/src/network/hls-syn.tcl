@@ -52,8 +52,8 @@ set config_lstmlibdir "$::env(LSTM_ROOT)/library/hls"
 set config_lstmhostlibdir "$::env(LSTM_ROOT)/library/host"
 set config_lstmdriverlibdir "$::env(LSTM_ROOT)/library/driver"
 set config_toplevelfxn "topLevel_BLSTM_CTC"
-set config_proj_part "xc7z020clg400-1"
-set config_clkperiod 5
+set config_proj_part [lindex $argv 7]
+set config_clkperiod [lindex $argv 8]
 
 open_project $config_proj_name
 add_files $config_hwsrcdir/../top.cpp -cflags "-std=c++0x -I$config_lstmlibdir -I$config_hwsrcdir -I$config_hwsrcdir/../"

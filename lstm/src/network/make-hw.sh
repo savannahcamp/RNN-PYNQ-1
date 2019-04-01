@@ -48,7 +48,7 @@ if [ "$#" -ne 4 ]; then
   echo "Usage: $0 <dataset> <network> <platform> <mode>" >&2
   echo "where <dataset> = plain" >&2
   echo "where <network> = $NETWORKS" >&2
-  echo "<platform> = pynq" >&2
+  echo "<platform> = pynqZ1-Z2, zc706" >&2
   echo "<mode> = regenerate (h)ls only, (b)itstream only, (a)ll" >&2
   exit 1
 fi
@@ -78,7 +78,7 @@ fi
 NETWORK_PATH=$LSTM_ROOT/network
 
 HLS_SRC_DIR="$NETWORK_PATH/$DATASET/$NETWORK"
-HLS_OUT_DIR="$NETWORK_PATH/output/hls-syn/$DATASET-$NETWORK"
+HLS_OUT_DIR="$NETWORK_PATH/output/hls-syn/$DATASET-$NETWORK-$PLATFORM"
 
 HLS_SCRIPT=$NETWORK_PATH/hls-syn.tcl
 HLS_IP_REPO="$HLS_OUT_DIR/sol1/impl/ip"
@@ -86,10 +86,10 @@ HLS_IP_REPO="$HLS_OUT_DIR/sol1/impl/ip"
 VIVADO_HLS_LOG="$NETWORK_PATH/output/hls-syn/vivado_hls.log"
 
 HLS_REPORT_PATH="$HLS_OUT_DIR/sol1/syn/report/topLevel_BLSTM_CTC_csynth.rpt"
-REPORT_OUT_DIR="$NETWORK_PATH/output/report/$NETWORK"
+REPORT_OUT_DIR="$NETWORK_PATH/output/report/$NETWORK-$PLATFORM"
 
 
-VIVADO_SCRIPT_DIR=$LSTM_ROOT/library/script/
+VIVADO_SCRIPT_DIR=$LSTM_ROOT/library/script/$PLATFORM
 VIVADO_SCRIPT=$VIVADO_SCRIPT_DIR/make-vivado-proj.tcl
 
 # regenerate HLS if requested
@@ -102,7 +102,18 @@ if [[ ("$MODE" == "h") || ("$MODE" == "a")  ]]; then
   TEST_INPUT="$LSTM_ROOT/../../tests/Test_images/$DATASET/$NETWORK/test_image.txt"
   TEST_RESULT="$LSTM_ROOT/../../tests/Test_images/$DATASET/$NETWORK/test_image_gt.txt"
   ALPHABET="$LSTM_ROOT/../datasets/$DATASET/alphabet.txt"
-  vivado_hls -f $HLS_SCRIPT -tclargs $DATASET-$NETWORK $HLS_SRC_DIR $ALPHABET $TEST_INPUT $TEST_RESULT
+  
+  if [[ ("$PLATFORM" == "pynqZ1-Z2") ]]; then
+    PLATFORM_PART="xc7z020clg400-1"
+    TARGET_CLOCK=5
+  elif [[ ("$PLATFORM" == "zc706") ]]; then
+    PLATFORM_PART="xc7z045ffg900-2"
+    TARGET_CLOCK=5  
+  else
+    echo "Error: Platform not supported. Please choose between zc706 and pynqZ1-Z2."
+    exit 1
+  fi
+  vivado_hls -f $HLS_SCRIPT -tclargs $DATASET-$NETWORK-$PLATFORM $HLS_SRC_DIR $ALPHABET $TEST_INPUT $TEST_RESULT $PLATFORM_PART $TARGET_CLOCK
   if cat $VIVADO_HLS_LOG | grep "ERROR"; then
     echo "Error in Vivado_HLS"
     exit 1	
@@ -125,8 +136,7 @@ VIVADO_OUT_DIR="$NETWORK_PATH/output/vivado/$TARGET_NAME"
 BITSTREAM_PATH="$NETWORK_PATH/output/bitstream"
 TARGET_BITSTREAM="$BITSTREAM_PATH/$DATASET-$NETWORK-$PLATFORM.bit"
 TARGET_TCL="$BITSTREAM_PATH/$DATASET-$NETWORK-$PLATFORM.tcl"
-FREQ="100.0"
-
+TARGET_HWH="$BITSTREAM_PATH/$DATASET-$NETWORK-$PLATFORM.hwh"
 
 if [[ ("$MODE" == "b") || ("$MODE" == "a")  ]]; then
   mkdir -p "$NETWORK_PATH/output/vivado"
@@ -144,6 +154,7 @@ if [[ ("$MODE" == "b") || ("$MODE" == "a")  ]]; then
   fi
   vivado -mode batch -notrace -source $VIVADO_SCRIPT -tclargs $HLS_IP_REPO $TARGET_NAME $VIVADO_OUT_DIR $VIVADO_SCRIPT_DIR
   cp -f "$VIVADO_OUT_DIR/$TARGET_NAME.runs/impl_1/procsys_wrapper.bit" $TARGET_BITSTREAM
+  cp -f "$VIVADO_OUT_DIR/$TARGET_NAME.srcs/sources_1/bd/procsys/hw_handoff/procsys.hwh" $TARGET_HWH
   cp -f "$VIVADO_OUT_DIR/procsys.tcl" $TARGET_TCL
   # extract parts of the post-implementation reports
   cat "$VIVADO_OUT_DIR/$TARGET_NAME.runs/impl_1/procsys_wrapper_timing_summary_routed.rpt" | grep "| Design Timing Summary" -B 3 -A 10 > $REPORT_OUT_DIR/vivado.txt
