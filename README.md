@@ -1,3 +1,6 @@
+# Updates
+1. Added Support for ZC706
+2. Added Example on seq_mnist train using my [ctc-ocr-pytorch repo](https://github.com/ussamazahid96/ctc-ocr-pytorch)
 # LSTM-PYNQ Pip Installable Package
 
 This repo contains the pip install package for Quantized LSTM on PYNQ. 
