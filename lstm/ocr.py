@@ -29,10 +29,10 @@
 #   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-from abc import ABCMeta, abstractmethod, abstractproperty
-
+import time
 import numpy as np
-
+from .input_handling import InputImage, Alphabets
+from abc import ABCMeta, abstractmethod, abstractproperty
 from lstm import PynqLSTM, RUNTIME_HW, LSTM_DATA_DIR, PlainImagePreprocessor, FrakturImagePreprocessor
 
 MAX_OCR_LENGTH = 1024
@@ -40,10 +40,11 @@ MAX_OCR_LENGTH = 1024
 class PynqOCR(PynqLSTM):
     __metaclass__ = ABCMeta
 
-    def __init__(self, runtime, dataset, network, load_overlay, preprocessor):
-        super(PynqOCR, self).__init__(runtime, dataset, network, load_overlay)
+    def __init__(self, runtime, dataset, network, load_overlay, preprocessor, bitstream_path=None):
+        super(PynqOCR, self).__init__(runtime, dataset, network, load_overlay, bitstream_path)
         self.alphabet_path = os.path.join(LSTM_DATA_DIR, dataset, "alphabet.txt")
         self.preprocessor = preprocessor
+        self.input_bitwidth = int(network[-1])
     
     @property
     def ffi_interface(self):
@@ -63,12 +64,26 @@ class PynqOCR(PynqLSTM):
     def inference(self, input_data):
         input_data = self.preprocessor.preprocess(input_data)
         input_data_post_process_width = int(len(input_data) / self.input_size)
+
+        input_data_processed = InputImage(input_data, self.input_size, self.bidirectional_enabled)
+        alphabets = Alphabets(self.alphabet_path, self.alphabet_size)
+        
+        start = time.time()
+        predictions = self.hw_inference(input_data_processed)        
+        end = time.time() - start
+        
+        print("Inference took = {} sec...\n".format(end))
+        print(predictions)
+        self.cleanup()
+        exit(0)
+
         input_data_f = self._ffi.cast("float *", input_data.ctypes.data)
         keepalive = []
         out_buffer = self._ffi.new("char[]", MAX_OCR_LENGTH)
         ms_compute_time = self._ffi.new("float *")
         keepalive.append(out_buffer)
         self.interface.lstm_ocr_wrapper(input_data_f, len(input_data), out_buffer, bytes(self.alphabet_path, encoding='ascii'), ms_compute_time)
+        
         mops_per_s = 0.001 * self.ops_per_seq_element * input_data_post_process_width / ms_compute_time[0]
         return mops_per_s, ms_compute_time[0], self._ffi.string(out_buffer).decode('utf8')
 
@@ -86,12 +101,13 @@ class PynqOCR(PynqLSTM):
 
 class PynqPlainOCR(PynqOCR):
 
-    def __init__(self, runtime=RUNTIME_HW, network="W4A4", load_overlay=True):
+    def __init__(self, runtime=RUNTIME_HW, network="W4A4", load_overlay=True, bitstream_path=None):
         super(PynqPlainOCR, self).__init__(runtime, 
                                            "plain", 
                                            network,
                                            load_overlay, 
-                                           PlainImagePreprocessor(self.input_size, int(network[-1])))
+                                           PlainImagePreprocessor(self.input_size, int(network[-1])),
+                                           bitstream_path=bitstream_path)
 
     @property
     def alphabet_size(self):
@@ -119,14 +135,15 @@ class PynqPlainOCR(PynqOCR):
 
 class PynqFrakturOCR(PynqOCR):
 
-    def __init__(self, runtime=RUNTIME_HW, network="W5A5", load_overlay=True):
+    def __init__(self, runtime=RUNTIME_HW, network="W5A5", load_overlay=True, bitstream_path=None):
         super(PynqFrakturOCR, self).__init__(runtime, 
                                              "fraktur",
                                              network, 
                                              load_overlay, 
                                              FrakturImagePreprocessor(
                                                 np.loadtxt(os.path.join(LSTM_DATA_DIR, "fraktur", 'mean.txt')),
-                                                np.loadtxt(os.path.join(LSTM_DATA_DIR, "fraktur", 'std_deviation.txt'))))
+                                                np.loadtxt(os.path.join(LSTM_DATA_DIR, "fraktur", 'std_deviation.txt'))),
+                                             bitstream_path=bitstream_path)
 
     @property
     def alphabet_size(self):

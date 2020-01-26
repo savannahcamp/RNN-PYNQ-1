@@ -1,6 +1,8 @@
 # Compiled python modules. 
 *.pyc  
 __pycache__
+sds_trace_data.dat
+tests/sds_trace_data.dat
 
 # Setuptools distribution folder. 
 /dist/  
@@ -19,4 +21,5 @@ __pycache__
 
 #CMake build
 lstm/src/build/
+
 
