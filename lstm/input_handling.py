@@ -1,9 +1,5 @@
-
-
-
-import numpy as np
 import warnings
-import csv
+import numpy as np
 
 class InputImage(object):
 	def __init__(self, image_array, height_in_pix, bidirectional_enabled):
