@@ -62,30 +62,28 @@ class PynqOCR(PynqLSTM):
         return 2 * self.hidden_size * 2 * self.alphabet_size if self.peepholes_enabled else 2 * self.hidden_size * self.alphabet_size
 
     def inference(self, input_data):
+        
         input_data = self.preprocessor.preprocess(input_data)
         input_data_post_process_width = int(len(input_data) / self.input_size)
 
         input_data_processed = InputImage(input_data, self.input_size, self.bidirectional_enabled)
         alphabets = Alphabets(self.alphabet_path, self.alphabet_size)
-        
         start = time.time()
         predictions = self.hw_inference(input_data_processed)        
         end = time.time() - start
-        
-        print("Inference took = {} sec...\n".format(end))
-        print(predictions)
+        string = alphabets.ReturnString(predictions)
         self.cleanup()
-        exit(0)
+        mops_per_s = 0.001 * self.ops_per_seq_element * input_data_post_process_width / end
+        return mops_per_s, end, string
 
-        input_data_f = self._ffi.cast("float *", input_data.ctypes.data)
-        keepalive = []
-        out_buffer = self._ffi.new("char[]", MAX_OCR_LENGTH)
-        ms_compute_time = self._ffi.new("float *")
-        keepalive.append(out_buffer)
-        self.interface.lstm_ocr_wrapper(input_data_f, len(input_data), out_buffer, bytes(self.alphabet_path, encoding='ascii'), ms_compute_time)
-        
-        mops_per_s = 0.001 * self.ops_per_seq_element * input_data_post_process_width / ms_compute_time[0]
-        return mops_per_s, ms_compute_time[0], self._ffi.string(out_buffer).decode('utf8')
+        # input_data_f = self._ffi.cast("float *", input_data.ctypes.data)
+        # keepalive = []
+        # out_buffer = self._ffi.new("char[]", MAX_OCR_LENGTH)
+        # ms_compute_time = self._ffi.new("float *")
+        # keepalive.append(out_buffer)
+        # self.interface.lstm_ocr_wrapper(input_data_f, len(input_data), out_buffer, bytes(self.alphabet_path, encoding='ascii'), ms_compute_time)
+        # mops_per_s = 0.001 * self.ops_per_seq_element * input_data_post_process_width / ms_compute_time[0]
+        # return mops_per_s, ms_compute_time[0], self._ffi.string(out_buffer).decode('utf8')
 
     def inference_from_path(self, input_path):
         keepalive = []

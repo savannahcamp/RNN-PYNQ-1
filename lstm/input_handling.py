@@ -46,3 +46,10 @@ class Alphabets(object):
 		self.alphabets = np.append([""], self.alphabets)
 		if len(self.alphabets) != self.alphabets_size:
 			raise Exception("Wrong number of symbols in alphabet")
+
+	def ReturnString(self, pred):
+		length = pred[0]
+		string = ""
+		for i in range(1,int(length+1)):
+			string += str(self.alphabets[pred[i]])
+		return string

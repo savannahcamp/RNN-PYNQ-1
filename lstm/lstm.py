@@ -74,13 +74,20 @@ class PynqLSTM(object):
 
         # self._ffi = cffi.FFI()
         # self._libraries = {}
+        # if runtime == RUNTIME_HW:
+        #     self.bitstream_name="{}-{}-{}.bit".format(dataset, network, PLATFORM)
+        #     self.bitstream_path=os.path.join(LSTM_BIT_DIR, dataset, network, self.bitstream_name)
+        #     if PL.bitfile_name != self.bitstream_path:
+        #         if load_overlay:
+        #             Overlay(self.bitstream_path).download()
+        #         else:
+        #             raise RuntimeError("Incorrect Overlay loaded")
         # dllname = "{}-{}-{}-ocr-{}.so".format(runtime, dataset, network, PLATFORM)
         # if dllname not in self._libraries:
         #     self._libraries[dllname] = self._ffi.dlopen(
         # os.path.join(LSTM_LIB_DIR, dataset, network, dllname))
         # self.interface = self._libraries[dllname]
         # self._ffi.cdef(self.ffi_interface)
-
 
     def pack(self, img):
         img = img*2**(self.input_bitwidth-1)
