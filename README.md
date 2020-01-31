@@ -37,11 +37,10 @@ This repo is a joint release of University of Kaiserslautern, [Microelectronic S
 
 ## Quick Start
 
-In order to install it to your PYNQ (on PYNQ v2.0), connect to the board, open a terminal and type:
+In order to install it to your PYNQ (on PYNQ v2.5), connect to the board, open a terminal and type:
 
 ```
 sudo pip3.6 install git+https://github.com/ussamazahid96/LSTM-PYNQ.git
-sudo pip3.6 install git+https://github.com/ussamazahid96/LSTM-PYNQ.git (for PYNQ 2.4)
 ```
 
 This will install the LSTM-PYNQ package to your board, and create a **lstm** directory in the Jupyter home area. You will find the Jupyter notebooks to test the LSTM in this directory. 
@@ -51,7 +50,6 @@ This will install the LSTM-PYNQ package to your board, and create a **lstm** dir
 The repo is organized as follows:
 -   *lstm*: contains the pip installed package
     -	*bitstreams*: bitstream for the Fraktur OCR overlay.
-    -	*libraries*: pre-compiled shared objects for low-level driver of the overlays.
     -	*datasets*: contains support files for working with a given dataset.
     -	*src*: contains the sources and scripts to regenerate the available overlays
         - *library*: FINN library for HLS LSTM descriptions, host code, script to rebuilt and drivers for the PYNQ (please refer to README for more details)
