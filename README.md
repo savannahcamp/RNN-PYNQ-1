@@ -2,7 +2,7 @@
 
 1. Added Support for Ultra96 and ZC706
 2. Replaced all the .so host code with python (no .so files needed anymore)
-3. Includes the seq_mnist example (trained from my <a href="https://github.com/ussamazahid96/ctc-ocr-pytorch" target="_blank"> ctc-ocr-pytorch repo </a>).
+3. Includes the seq_mnist example (trained from my <a href="https://github.com/ussamazahid96/ctc-ocr-pytorch" target="_blank"> ctc-ocr-pytorch repo</a>).
 
 # LSTM-PYNQ Pip Installable Package
 
