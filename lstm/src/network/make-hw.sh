@@ -48,7 +48,7 @@ if [ "$#" -ne 4 ]; then
   echo "Usage: $0 <dataset> <network> <platform> <mode>" >&2
   echo "where <dataset> = plain" >&2
   echo "where <network> = $NETWORKS" >&2
-  echo "<platform> = pynqZ1-Z2, zc706" >&2
+  echo "<platform> = pynqZ1-Z2, ultra96, zc706" >&2
   echo "<mode> = regenerate (h)ls only, (b)itstream only, (a)ll" >&2
   exit 1
 fi
@@ -108,6 +108,9 @@ if [[ ("$MODE" == "h") || ("$MODE" == "a")  ]]; then
     TARGET_CLOCK=5
   elif [[ ("$PLATFORM" == "zc706") ]]; then
     PLATFORM_PART="xc7z045ffg900-2"
+    TARGET_CLOCK=5
+  elif [[ ("$PLATFORM" == "ultra96") ]]; then
+    PLATFORM_PART="xczu3eg-sbva484-1-i"
     TARGET_CLOCK=5  
   else
     echo "Error: Platform not supported. Please choose between zc706 and pynqZ1-Z2."
