@@ -58,19 +58,5 @@ def test_plain_ocr():
             hw_ocr.cleanup()
             assert gt == hw_recognized_text
 
-net = "W8A8"
-def test_ultra96():
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-    hw_ocr = lstm.PynqPlainOCR(runtime=lstm.RUNTIME_HW, network=net)
-    im = Image.open(os.path.join(test_dir, 'Test_images', 'plain', net, '010077.bin.png'))
-    with open(os.path.join(test_dir, 'Test_images', 'plain', net, 'test_image_gt.txt'), 'r') as f:
-        gt = f.read().replace('\n', '')
-        hw_result = hw_ocr.inference(im)
-        _, _, hw_recognized_text = hw_result
-        print("Pred  = {}".format(hw_recognized_text))
-        print("Label = {}".format(gt))
-        hw_ocr.cleanup()
-        assert gt == hw_recognized_text
-
 if __name__ == '__main__':
-    test_ultra96()
+    test_plain_ocr()

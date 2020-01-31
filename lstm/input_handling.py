@@ -32,11 +32,6 @@ class InputImage(object):
 		warnings.warn("Add check for the mult of 4....")
 
 		self.image_array = image_fw_bw
-		# for i in range(520):
-		# 	c = np.array_equal(image_fw_bw[:,2*i+1], self.image_array[:,-1-i])
-		# 	if not c:
-		# 		print("ERROR")
-		# 		exit(1)
 	
 class Alphabets(object):
 	def __init__(self, alphabets_path, alphabets_size):
