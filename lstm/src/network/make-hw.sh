@@ -46,7 +46,7 @@
 NETWORKS=$(ls -d ./plain/W*A*/ | cut -f3 -d'/' | tr "\n" " ")
 if [ "$#" -ne 4 ]; then
   echo "Usage: $0 <dataset> <network> <platform> <mode>" >&2
-  echo "where <dataset> = plain" >&2
+  echo "where <dataset> = plain, seq_mnist" >&2
   echo "where <network> = $NETWORKS" >&2
   echo "<platform> = pynqZ1-Z2, ultra96, zc706" >&2
   echo "<mode> = regenerate (h)ls only, (b)itstream only, (a)ll" >&2

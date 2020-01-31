@@ -43,12 +43,9 @@ elif os.environ['BOARD'] == 'Ultra96':
 else:
     raise RuntimeError("Board not supported")
 
-
 RUNTIME_HW = "libhw"
-RUNTIME_SW = "libsw"
 
 LSTM_ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
-LSTM_LIB_DIR = os.path.join(LSTM_ROOT_DIR, 'libraries')
 LSTM_BIT_DIR = os.path.join(LSTM_ROOT_DIR, 'bitstreams')
 LSTM_DATA_DIR = os.path.join(LSTM_ROOT_DIR, 'datasets')
 
@@ -71,23 +68,6 @@ class PynqLSTM(object):
         self.input_bitwidth = int(network[-1])
         self.accel_input_buffer = None
         self.accel_output_buffer = None
-
-        # self._ffi = cffi.FFI()
-        # self._libraries = {}
-        # if runtime == RUNTIME_HW:
-        #     self.bitstream_name="{}-{}-{}.bit".format(dataset, network, PLATFORM)
-        #     self.bitstream_path=os.path.join(LSTM_BIT_DIR, dataset, network, self.bitstream_name)
-        #     if PL.bitfile_name != self.bitstream_path:
-        #         if load_overlay:
-        #             Overlay(self.bitstream_path).download()
-        #         else:
-        #             raise RuntimeError("Incorrect Overlay loaded")
-        # dllname = "{}-{}-{}-ocr-{}.so".format(runtime, dataset, network, PLATFORM)
-        # if dllname not in self._libraries:
-        #     self._libraries[dllname] = self._ffi.dlopen(
-        # os.path.join(LSTM_LIB_DIR, dataset, network, dllname))
-        # self.interface = self._libraries[dllname]
-        # self._ffi.cdef(self.ffi_interface)
 
     def pack(self, img):
         img = img*2**(self.input_bitwidth-1)

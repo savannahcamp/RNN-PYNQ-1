@@ -2,8 +2,8 @@
 
 LSTM topologies, working on different datasets and multiple precision, namely:
  
- - "fraktur": old German [Fraktur](http://www.deutschestextarchiv.de/) text.
  - "plain": plain-text dataset from [Insiders Technologies GmbH](https://www.insiders-technologies.de/home.html).
+ - "seq_mnist": sequence of mnist digits from [my ctc-ocr-pytorch repo](https://github.com/ussamazahid96/ctc-ocr-pytorch).
 
 For each dataset, there is a folder structure like this:
 

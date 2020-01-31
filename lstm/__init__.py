@@ -28,8 +28,8 @@
 #   OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
 #   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from .lstm import PynqLSTM, RUNTIME_HW, RUNTIME_SW, LSTM_DATA_DIR
+from .lstm import PynqLSTM, RUNTIME_HW, LSTM_DATA_DIR
 from .preprocessor import PlainImagePreprocessor, FrakturImagePreprocessor
-from .ocr import PynqFrakturOCR, PynqPlainOCR
+from .ocr import PynqFrakturOCR, PynqPlainOCR, PynqSeqMnistOCR
 
 __version__ = 0.2
