@@ -59,7 +59,7 @@ def test_plain_ocr():
             assert gt == hw_recognized_text
 
 def test_seq_mnist_ocr():
-    networks = ["W2A2", "W4A8"]
+    networks = ["W2A2", "W2A4","W4A4","W4A8"]
     test_dir = os.path.dirname(os.path.realpath(__file__))
     for network in networks:
         hw_ocr = lstm.PynqSeqMnistOCR(runtime=lstm.RUNTIME_HW, network=network)
