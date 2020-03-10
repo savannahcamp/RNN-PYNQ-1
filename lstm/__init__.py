@@ -29,7 +29,7 @@
 #   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from .lstm import PynqLSTM, RUNTIME_HW, LSTM_DATA_DIR
-from .preprocessor import PlainImagePreprocessor, FrakturImagePreprocessor
-from .ocr import PynqFrakturOCR, PynqPlainOCR, PynqSeqMnistOCR
+from .preprocessor import PlainImagePreprocessor
+from .ocr import PynqPlainOCR, PynqSeqMnistOCR
 
 __version__ = 0.2

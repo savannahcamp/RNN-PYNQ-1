@@ -34,19 +34,8 @@ from PIL import Image
 import numpy as np
 import pytest
 
-def test_fraktur_ocr():
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-    hw_ocr = lstm.PynqFrakturOCR(runtime=lstm.RUNTIME_HW)
-    im = Image.open(os.path.join(test_dir, 'Test_images', 'fraktur', '010001.raw.lnrm.png'))
-    with open(os.path.join(test_dir, 'Test_images', 'fraktur', '010001.txt'), 'r') as f:
-        gt = f.read().replace('\n', '')
-    hw_result = hw_ocr.inference(im)
-    _, _, hw_recognized_text = hw_result
-    hw_ocr.cleanup()
-    assert gt == hw_recognized_text
-
 def test_plain_ocr():
-    networks = ["W2A2", "W2A4", "W4A4", "W4A8"]
+    networks = ["W2A2", "W4A8"]
     test_dir = os.path.dirname(os.path.realpath(__file__))
     for network in networks:
         hw_ocr = lstm.PynqPlainOCR(runtime=lstm.RUNTIME_HW, network=network)
@@ -72,4 +61,4 @@ def test_seq_mnist_ocr():
             assert gt == hw_recognized_text
 
 if __name__ == '__main__':
-    test_seq_mnist_ocr()
+    test_plain_ocr()

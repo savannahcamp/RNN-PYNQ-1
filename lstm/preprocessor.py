@@ -37,9 +37,6 @@ import cv2 as cv2
 from PIL import Image
 import PIL.ImageOps 
 
-FRAKTUR_PADDING = 16
-FRAKTUR_MIN_CLIP = -1.75
-FRAKTUR_MAX_CLIP = 3.75
 DELTA = 0.1
 
 class ImagePreprocessor(object):
@@ -96,27 +93,4 @@ class PlainImagePreprocessor(ImagePreprocessor):
         preprocessed_image = self.shift_scale(preprocessed_image)
         preprocessed_image = self.quantize(preprocessed_image)
         return preprocessed_image  
-        
-class FrakturImagePreprocessor(ImagePreprocessor):
-    def __init__(self, mean, std_deviation):
-        super(FrakturImagePreprocessor, self).__init__()
-        self.mean = mean
-        self.std_deviation = std_deviation
 
-    def greyscale(self, image):
-        return image.convert('L')
-
-    def preprocess(self, image):
-        preprocessed_image = self.greyscale(image)
-        preprocessed_image = np.array(preprocessed_image)
-        preprocessed_image = preprocessed_image * 1.0 / np.amax(preprocessed_image)
-        preprocessed_image = np.amax(preprocessed_image) - preprocessed_image
-        preprocessed_image = preprocessed_image.T   
-        w = preprocessed_image.shape[1]
-        preprocessed_image = np.vstack([np.zeros((FRAKTUR_PADDING, w)), preprocessed_image, np.zeros((FRAKTUR_PADDING, w))])
-        preprocessed_image = (preprocessed_image - self.mean) / self.std_deviation
-        preprocessed_image = preprocessed_image.reshape(-1,1)
-        preprocessed_image = np.round(preprocessed_image * 4)/4
-        preprocessed_image = np.clip(preprocessed_image, a_min=float(FRAKTUR_MIN_CLIP), a_max=float(FRAKTUR_MAX_CLIP))
-        preprocessed_image = preprocessed_image.astype(np.float32)    
-        return preprocessed_image

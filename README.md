@@ -7,7 +7,7 @@
 # LSTM-PYNQ Pip Installable Package
 
 This repo contains the pip install package for Quantized LSTM on PYNQ. 
-Currently one overlay is included, that performs Optical Character Recognition (OCR) of old German [Fraktur](http://www.deutschestextarchiv.de/) text and a plain-text dataset provided by [Insiders Technologies GmbH](https://www.insiders-technologies.de/home.html).
+Currently one overlay is included, that performs Optical Character Recognition (OCR) of a plain-text dataset provided by [Insiders Technologies GmbH](https://www.insiders-technologies.de/home.html) and seq_mnist.
 
 If you find it useful, we would appreciate a citation to:
 
@@ -49,7 +49,7 @@ This will install the LSTM-PYNQ package to your board, and create a **lstm** dir
 
 The repo is organized as follows:
 -   *lstm*: contains the pip installed package
-    -	*bitstreams*: bitstream for the Fraktur OCR overlay.
+    -	*bitstreams*: bitstreams for the plain and sequential mnist OCR overlay.
     -	*datasets*: contains support files for working with a given dataset.
     -	*src*: contains the sources and scripts to regenerate the available overlays
         - *library*: FINN library for HLS LSTM descriptions, host code, script to rebuilt and drivers for the PYNQ (please refer to README for more details)
@@ -66,7 +66,7 @@ Following the step-by-step instructions:
 2.	Move to `<clone_path>/LSTM_PYNQ/lstm/src/network/`
 3.	Set the LSTM_ROOT environment variable to `<clone_path>/LSTM_PYNQ/lstm/src/`
 4.	Launch the shell script make-hw.sh with parameters the target dataset, target network, target platform and mode, with the command `./make-hw.sh {dataset} {network} {platform} {mode}` where:
-	- dataset can be plain or fraktur;
+	- dataset can be plain or seq_mnist;
 	- network depends on the precision you want for weights and activations (e.g., WxAy features x bits for Weights and y bits for activations) - check the available configuration in the dataset folder at `<clone_path>/LSTM_PYNQ/lstm/src/network/<dataset>`;
 	- platform is pynq;
 	- mode can be `h` to launch Vivado HLS synthesis, `b` to launch the Vivado project (needs HLS synthesis results), `a` to launch both.
@@ -75,4 +75,4 @@ Following the step-by-step instructions:
 	- hls-syn: contains the Vivado HLS generated RTL and IP (in the subfolder named as the target network);
 	- report: contains the Vivado and Vivado HLS reports;
 	- vivado: contains the Vivado project.
-6.	Copy the generated bitstream and tcl script on the PYNQ board `<pip_installation_path>/lstm/bitstreams/`
+6.	Copy the generated bitstream and hwh script on the PYNQ board `<pip_installation_path>/lstm/bitstreams/`

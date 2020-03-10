@@ -33,7 +33,7 @@ import time
 import numpy as np
 from .input_handling import InputImage, Alphabets
 from abc import ABCMeta, abstractmethod, abstractproperty
-from lstm import PynqLSTM, RUNTIME_HW, LSTM_DATA_DIR, PlainImagePreprocessor, FrakturImagePreprocessor
+from lstm import PynqLSTM, RUNTIME_HW, LSTM_DATA_DIR, PlainImagePreprocessor
 
 MAX_OCR_LENGTH = 1024
 
@@ -140,41 +140,4 @@ class PynqSeqMnistOCR(PynqOCR):
     @property
     def bidirectional_enabled(self):
         return True
-
-class PynqFrakturOCR(PynqOCR):
-
-    def __init__(self, runtime=RUNTIME_HW, network="W5A5", load_overlay=True, bitstream_path=None):
-        super(PynqFrakturOCR, self).__init__(runtime, 
-                                             "fraktur",
-                                             network, 
-                                             load_overlay, 
-                                             FrakturImagePreprocessor(
-                                                np.loadtxt(os.path.join(LSTM_DATA_DIR, "fraktur", 'mean.txt')),
-                                                np.loadtxt(os.path.join(LSTM_DATA_DIR, "fraktur", 'std_deviation.txt'))),
-                                             bitstream_path=bitstream_path)
-
-    @property
-    def alphabet_size(self):
-        return 110
-
-    @property
-    def input_size(self):
-        return 25
-
-    @property
-    def hidden_size(self):
-        return 100
-
-    @property
-    def peepholes_enabled(self):
-        return True
-
-    @property
-    def bias_enabled(self):
-        return True
-
-    @property
-    def bidirectional_enabled(self):
-        return True
-
 
