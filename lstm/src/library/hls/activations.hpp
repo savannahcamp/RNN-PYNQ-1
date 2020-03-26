@@ -31,6 +31,11 @@
  *
  */
 
+#ifndef ACTIVATION_HPP
+#define ACTIVATION_HPP
+
+#include <stdint.h>
+
 template
 <
 unsigned int NUMBER_OF_LUT_ENTRIES,
@@ -106,3 +111,5 @@ Output_t tanh_lut(Input_t & input, Output_t lut_tanh[NUMBER_OF_LUT_ENTRIES])
 
 	return output;
 }
+
+#endif

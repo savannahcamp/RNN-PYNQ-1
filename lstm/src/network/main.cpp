@@ -50,8 +50,10 @@ int main(int argc, const char* argv[]) {
 	std::string alphabet_path = argv[1];
 	float compute_time;
 	std::string predicted = lstm_ocr_from_file_path(argv[2], alphabet_path.c_str(), &compute_time);
-	// printf("Main predicted: %s\n", predicted.c_str());
-	if (!strcmp(predicted.c_str(), argv[3])) return 1;
-	return 0;
+	printf("Main predicted: %s\n", predicted.c_str());
+	if (!strcmp(predicted.c_str(), argv[3])) 
+		return 1;
+	else
+		return 0;
 }
 
