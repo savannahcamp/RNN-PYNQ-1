@@ -1,5 +1,5 @@
 #include "hardware_lstm.hpp"
-#include "hw_config.h"
+#include "hw_config.hpp"
 #include "r_model_fw_bw.hpp"
 
 void DoCompute(ap_uint<16> numberColumns,
@@ -10,9 +10,7 @@ void DoCompute(ap_uint<16> numberColumns,
 {
 #pragma HLS ALLOCATION instances=DSP48 limit=160 core
 	constexpr unsigned int StreamPerColumn = (HEIGHT_IN_PIX*PIXELWIDTH) / DATAWIDTH + (((HEIGHT_IN_PIX*PIXELWIDTH) % DATAWIDTH)>0); // CEILING
-	constexpr unsigned int BitPadding = StreamPerColumn*DATAWIDTH - HEIGHT_IN_PIX*PIXELWIDTH;
-	constexpr unsigned int LastStreamBits = DATAWIDTH - BitPadding;
-	#pragma HLS DATAFLOW
+#pragma HLS DATAFLOW
 	
 	hls::stream<ap_uint<DATAWIDTH> >output_stream_dma_input("output_stream_dma_input");
 #pragma HLS STREAM variable=output_stream_dma_input depth=2
@@ -50,7 +48,7 @@ void DoCompute(ap_uint<16> numberColumns,
 	StreamingCast< ap_uint<StreamPerColumn * DATAWIDTH>, ap_uint<HEIGHT_IN_PIX * PIXELWIDTH> >(stream_column_padded, output_stream_columns, numberColumnsTwice);
 
 	HiddenLayer_noPH
-	<PE, SIMD_INPUT, SIMD_RECURRENT, t_fixed_image, PIXELWIDTH,
+	<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, t_fixed_image, PIXELWIDTH,
 	t_fixed_bgi, BIASWIDTH, t_fixed_wgi, WEIGHTWIDTH, t_fixed_sum_wgi, t_fixed_gix_sum,
 	t_fixed_bgf, BIASWIDTH, t_fixed_wgf, WEIGHTWIDTH, t_fixed_sum_wgf, t_fixed_gfx_sum,
 	t_fixed_bgo, BIASWIDTH,t_fixed_wgo, WEIGHTWIDTH, t_fixed_sum_wgo, t_fixed_gox_sum,
@@ -69,7 +67,7 @@ void DoCompute(ap_uint<16> numberColumns,
 	StreamingDataWidthConverter_Batch<OUTPUTACTIVATIONHIDDENLAYERWIDTH*PE, OUTPUTACTIVATIONHIDDENLAYERWIDTH * NUMBER_OF_NEURONS, NUMBER_OF_NEURONS/PE>(output_stream_hidden_layer, output_stream_input_streamer, numberColumnsTwice);
 
 	OutputLayer
-	<
+	<DIRECTIONS,
 	t_fixed_bfc, FCBIASWIDTH,
 	t_fixed_wfc, FCWEIGHTWIDTH,
 	t_fixed_recurrent, OUTPUTACTIVATIONHIDDENLAYERWIDTH,
@@ -79,13 +77,14 @@ void DoCompute(ap_uint<16> numberColumns,
 	ap_uint<MAX_NUMBER_COLUMNS_TEST_SET_TYPEWIDTH>
 	>			
 	(bfc, wfc, numberColumns, output_stream_input_streamer, output_stream_mac);
-	
+
 	Concatenator
-	<		
+	<
+	DIRECTIONS,
 	t_fixed_sum_fc, OUTPUTACTIVATIONOUTPUTLAYERWIDTH,
 	ap_uint<NUMBER_OF_CLASSES_TYPEWIDTH>, NUMBER_OF_CLASSES,
 	ap_uint<MAX_NUMBER_COLUMNS_TEST_SET_TYPEWIDTH>, MAX_NUMBER_COLUMNS_TEST_SET
-	>			
+	>
 	(numberColumns, output_stream_mac, output_stream_concatenator);
 	
 	MaxPerColumn
@@ -99,7 +98,7 @@ void DoCompute(ap_uint<16> numberColumns,
 
 	FinalLabeling
 	<
-	maxx, 
+	DIRECTIONS, maxx, 
 	ap_uint<NUMBER_OF_CLASSES_TYPEWIDTH>, NUMBER_OF_CLASSES,
 	ap_uint<MAX_NUMBER_COLUMNS_TEST_SET_TYPEWIDTH>, MAX_NUMBER_COLUMNS_TEST_SET
 	>

@@ -116,6 +116,7 @@ class PynqSeqMnistOCR(PynqOCR):
                                            load_overlay, 
                                            PlainImagePreprocessor(self.input_size, int(network[-1])),
                                            bitstream_path=bitstream_path)
+        self.bidirectional = True
 
     @property
     def alphabet_size(self):
@@ -139,5 +140,13 @@ class PynqSeqMnistOCR(PynqOCR):
 
     @property
     def bidirectional_enabled(self):
-        return True
+        return self.bidirectional
+
+    @bidirectional_enabled.setter
+    def bidirectional_enabled(self, directions):
+        self.bidirectional = directions
+
+    @bidirectional_enabled.deleter
+    def bidirectional_enabled(self):
+        del self.bidirectional
 

@@ -42,6 +42,7 @@
 //===================================================================================================================================================================================
 template
 <
+unsigned int DIRECTIONS,
 typename Bias_fc_t,
 unsigned int BiasWidth_fc,
 typename Weight_fc_t,
@@ -56,8 +57,8 @@ typename NumberOutputUnits_t,
 unsigned int NumberOutputUnits,
 typename NumberColumns_t
 >
-void OutputLayer(const ap_uint<BiasWidth_fc> biases[1][2 * NumberOutputUnits],
-				 const ap_uint<WeightWidth_fc> weights[NumberHiddenUnits][2 * NumberOutputUnits],
+void OutputLayer(const ap_uint<BiasWidth_fc> biases[1][DIRECTIONS * NumberOutputUnits],
+				 const ap_uint<WeightWidth_fc> weights[NumberHiddenUnits][DIRECTIONS * NumberOutputUnits],
 				 NumberColumns_t numberOfColumns,
 		 	 	 hls::stream<ap_uint<OutputActivationHiddenLayerWidth * NumberHiddenUnits>> & input_stream,
 				 hls::stream<OutputActivationOutputLayer_t> & output_stream)
@@ -70,7 +71,7 @@ void OutputLayer(const ap_uint<BiasWidth_fc> biases[1][2 * NumberOutputUnits],
 
 	for(NumberColumns_t currentColumn = 0; currentColumn < numberOfColumns; currentColumn++)
 	{
-		for (ap_uint<2> count = 0; count < 2; count++)
+		for (ap_uint<DIRECTIONS> count = 0; count < DIRECTIONS; count++)
 		{
 			input_stream.read(input_stream_temp);
 

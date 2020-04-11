@@ -58,7 +58,7 @@
 #include <string.h>
 #include <iostream>
 
-#include "hw_config.h"
+#include "hw_config.hpp"
 
 std::vector<float> ReadImageFromFile(std::string image_path);
 std::vector<float> ReadImageFromArray(float* image_array, unsigned int flat_length); 

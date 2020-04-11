@@ -120,23 +120,26 @@ InputImage::InputImage(std::vector<float> image) {
 
 	// Check if the number of columns is mult. of 4
 	if (width_ % 4 == 0) {
-		image_fw_bw_ = new float[2 * width_ * HEIGHT_IN_PIX];
+		image_fw_bw_ = new float[DIRECTIONS * width_ * HEIGHT_IN_PIX];
 	} else {
-		image_fw_bw_ = new float[2 * width_ * HEIGHT_IN_PIX + 4];
+		image_fw_bw_ = new float[DIRECTIONS * width_ * HEIGHT_IN_PIX + 4];
 	}
 
 	// Interleave FW columns with BW columns
 	for (unsigned int col = 0; col < width_; col++) {
 		for (unsigned int row = 0; row < HEIGHT_IN_PIX; row++) {
-			image_fw_bw_[2 * col * HEIGHT_IN_PIX + row] = image[col * HEIGHT_IN_PIX + row];
+			image_fw_bw_[DIRECTIONS * col * HEIGHT_IN_PIX + row] = image[col * HEIGHT_IN_PIX + row];
 		}
-		for (unsigned int row = 0; row < HEIGHT_IN_PIX; row++) {
-			image_fw_bw_[HEIGHT_IN_PIX + 2 * col * HEIGHT_IN_PIX + row] = image[(width_ - col - 1) * HEIGHT_IN_PIX + row];
+		if (DIRECTIONS == 2)
+		{
+			for (unsigned int row = 0; row < HEIGHT_IN_PIX; row++) {
+				image_fw_bw_[HEIGHT_IN_PIX + DIRECTIONS * col * HEIGHT_IN_PIX + row] = image[(width_ - col - 1) * HEIGHT_IN_PIX + row];
+			}
 		}
 	}
 	if (width_ % 4 != 0) {
 		for (unsigned int pix = 0; pix < 4; pix++) {
-			image_fw_bw_[width_ * 2 * HEIGHT_IN_PIX + pix] = 0.0;
+			image_fw_bw_[width_ * DIRECTIONS * HEIGHT_IN_PIX + pix] = 0.0;
 		}
 	}	
 }

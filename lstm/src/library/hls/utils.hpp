@@ -143,7 +143,8 @@ void StreamingDataWidthConverter_Batch(stream<ap_uint<InWidth> > & in, stream<ap
 // MEMORY ROUTER
 //===================================================================================================================================================================================
 template
-<		
+<
+unsigned int DIRECTIONS,		
 typename OutputActivationOutputLayer_t,
 unsigned int OutputActivationOutputLayerWidth,
 typename NumberOutputUnits_t,
@@ -155,45 +156,63 @@ void Concatenator(NumberColumns_t numberOfColumns,
 			       hls::stream<OutputActivationOutputLayer_t> & input_stream,
 			       hls::stream<OutputActivationOutputLayer_t> & output_stream)
 {
-	static OutputActivationOutputLayer_t fw_bw_mem[MaxNumberColumns * NumberOutputUnits];
-	OutputActivationOutputLayer_t input, mem, sum;
-	//ap_uint<OutputActivationOutputLayerWidth> output;
-
-	for(ap_int<16> currentColumn = numberOfColumns - 1; currentColumn >= 0; currentColumn--)
+	
+	if (DIRECTIONS == 2)
 	{
-		for(NumberOutputUnits_t currentClass = 0; currentClass < NumberOutputUnits; currentClass++)
+		static OutputActivationOutputLayer_t fw_bw_mem[MaxNumberColumns * NumberOutputUnits];
+		OutputActivationOutputLayer_t input, mem, sum;
+		//ap_uint<OutputActivationOutputLayerWidth> output;
+
+		for(ap_int<16> currentColumn = numberOfColumns - 1; currentColumn >= 0; currentColumn--)
 		{
-		#pragma HLS PIPELINE II=1 rewind
+			for(NumberOutputUnits_t currentClass = 0; currentClass < NumberOutputUnits; currentClass++)
+			{
+			#pragma HLS PIPELINE II=1 rewind
 
-		#pragma HLS loop_flatten off
+			#pragma HLS loop_flatten off
 
-			input_stream.read(input);
+				input_stream.read(input);
 
-			ap_uint<32> offset = currentColumn * NumberOutputUnits + currentClass;
-			fw_bw_mem[offset] = input;
+				ap_uint<32> offset = currentColumn * NumberOutputUnits + currentClass;
+				fw_bw_mem[offset] = input;
+			}
+		}
+
+		for(NumberColumns_t currentColumn = 0; currentColumn < numberOfColumns; currentColumn++)
+		{
+			for(NumberOutputUnits_t currentClass = 0; currentClass < NumberOutputUnits; currentClass++)
+			{
+			#pragma HLS PIPELINE II=1 rewind
+
+			#pragma HLS loop_flatten off
+
+				input_stream.read(input);
+
+				ap_uint<32> offset = currentColumn * NumberOutputUnits + currentClass;
+				mem = fw_bw_mem[offset];
+
+				sum = mem + input;
+
+				//output = *reinterpret_cast<ap_uint<OutputActivationOutputLayerWidth> *>(&sum);
+
+				output_stream.write(sum);
+
+			}
 		}
 	}
-
-	for(NumberColumns_t currentColumn = 0; currentColumn < numberOfColumns; currentColumn++)
+	else
 	{
-		for(NumberOutputUnits_t currentClass = 0; currentClass < NumberOutputUnits; currentClass++)
+		for(NumberColumns_t currentColumn = 0; currentColumn < numberOfColumns; currentColumn++)
 		{
-		#pragma HLS PIPELINE II=1 rewind
-
-		#pragma HLS loop_flatten off
-
-			input_stream.read(input);
-
-			ap_uint<32> offset = currentColumn * NumberOutputUnits + currentClass;
-			mem = fw_bw_mem[offset];
-
-			sum = mem + input;
-
-			//output = *reinterpret_cast<ap_uint<OutputActivationOutputLayerWidth> *>(&sum);
-
-			output_stream.write(sum);
+			for(NumberOutputUnits_t currentClass = 0; currentClass < NumberOutputUnits; currentClass++)
+			{
+			#pragma HLS PIPELINE II=1 rewind
+					OutputActivationOutputLayer_t input = input_stream.read();
+					output_stream.write(input);
+			}
 
 		}
+
 	}
 }
 //===================================================================================================================================================================================
@@ -247,6 +266,7 @@ void MaxPerColumn(NumberColumns_t numberOfColumns,
 //===================================================================================================================================================================================
 template
 <
+unsigned int DIRECTIONS,
 typename Max_t, 
 typename NumberOutputUnits_t,
 unsigned int NumberOutputUnits,
@@ -277,17 +297,19 @@ void FinalLabeling(NumberColumns_t numberOfColumns,
 		if(max_per_current_column.label == 0)
 			max_per_current_column.value = 0.0;
 
-		max_global[center + pointer] = max_per_current_column;
-
-		//if(currentColumn % 2 == 0)
-		if(currentColumn(0,0) == 0)
+		if (DIRECTIONS==2)
 		{
-			pointer++;
-			pointer = -pointer;
+			max_global[center + pointer] = max_per_current_column;
+			if(currentColumn(0,0) == 0){
+				pointer++;
+				pointer = -pointer;
+			} else {
+				pointer = -pointer;
+			}
 		}
 		else
 		{
-			pointer = -pointer;
+			max_global[currentColumn] = max_per_current_column;
 		}
 	}
 

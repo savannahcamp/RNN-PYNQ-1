@@ -41,6 +41,7 @@
 //===================================================================================================================================================================================
 template
 < 
+unsigned int DIRECTIONS,
 unsigned int PE,
 unsigned int SIMD_INPUT, 			// Number of parallel MAC performed in the gates on input pixels
 unsigned int SIMD_RECURRENT, 		// Number of parallel MAC performed in the gates on recurrent path
@@ -58,10 +59,10 @@ unsigned int ColumnHeight,
 typename NumberHiddenUnits_t,
 unsigned int NumberHiddenUnits
 >
-DotProductResult_t DotVectorToMatrix(const ap_uint<BiasWidth> biases_i[PE][2 * NumberHiddenUnits/PE],
-				     const ap_uint<BiasWidth> biases_h[PE][2 * NumberHiddenUnits/PE],
-				     const ap_uint<WeightWidth> weights_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][2 * NumberHiddenUnits/PE],
-				     const ap_uint<WeightWidth> weights_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][2 * NumberHiddenUnits/PE],
+DotProductResult_t DotVectorToMatrix(const ap_uint<BiasWidth> biases_i[PE][DIRECTIONS * NumberHiddenUnits/PE],
+				     const ap_uint<BiasWidth> biases_h[PE][DIRECTIONS * NumberHiddenUnits/PE],
+				     const ap_uint<WeightWidth> weights_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][DIRECTIONS * NumberHiddenUnits/PE],
+				     const ap_uint<WeightWidth> weights_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][DIRECTIONS * NumberHiddenUnits/PE],
 				     ap_uint<ColumnHeight * PixelWidth> image_column,
 				     ap_uint<OutputActivationWidth * NumberHiddenUnits> inputs,
 				     NumberHiddenUnits_t currentHiddenUnit,

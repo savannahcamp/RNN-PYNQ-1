@@ -66,7 +66,7 @@ std::string lstm_ocr(float* image_fw_bw, int columns, const char* alphabet_path,
 	alphabet.Init(input_file_alphabet_dir);
 
 	std::vector<ap_uint<PACKEDWIDTH> > v_all_images;
-	for (unsigned int j = 0; j < columns * 2; j++) {
+	for (unsigned int j = 0; j < columns * DIRECTIONS; j++) {
 		t_fixed_image fpix[HEIGHT_IN_PIX];		
 		for(unsigned int l = 0; l < HEIGHT_IN_PIX; l++) {		
 			fpix[l] = (t_fixed_image) image_fw_bw[j * HEIGHT_IN_PIX + l];	
@@ -90,7 +90,7 @@ std::string lstm_ocr(float* image_fw_bw, int columns, const char* alphabet_path,
 	#endif
 		
 	unsigned int bytes_factor = ceil((float)(PIXELWIDTH * HEIGHT_IN_PIX * 8) / DATAWIDTH);
-	ap_uint<32> number_bytes_read = 2 * columns * bytes_factor;
+	ap_uint<32> number_bytes_read = DIRECTIONS * columns * bytes_factor;
 
 	auto start = std::chrono::high_resolution_clock::now();
 
@@ -105,7 +105,7 @@ std::string lstm_ocr(float* image_fw_bw, int columns, const char* alphabet_path,
 	while ((platform->readJamRegAddr(0x00) & 0x2) == 0) {}
 
 	#else	
-	topLevel_BLSTM_CTC(columns, columns * 2, number_bytes_read, sw_input, sw_output);
+	topLevel_BLSTM_CTC(columns, columns * DIRECTIONS, number_bytes_read, sw_input, sw_output);
 	#endif	
 
 	auto finish = std::chrono::high_resolution_clock::now();

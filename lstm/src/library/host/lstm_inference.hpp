@@ -39,7 +39,7 @@
 #include <math.h>
 
 #include "input_handling.hpp"
-#include "hw_config.h"
+#include "hw_config.hpp"
 #include "host_driver.hpp"
 
 std::string lstm_ocr(float* image_fw_bw, int width, const char* alphabet_path, float* compute_time);

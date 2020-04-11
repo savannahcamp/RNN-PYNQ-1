@@ -82,16 +82,16 @@ class PynqLSTM(object):
 
     def hw_inference(self, input_data_processed):
         packed_input = self.pack(input_data_processed.image_array)
-        
+        directions = 2 if self.bidirectional_enabled else 1
         self.accel_input_buffer = allocate(shape=packed_input.shape, dtype=np.uint64)
         self.accel_output_buffer = allocate(shape=(128,), dtype=np.uint64)
         np.copyto(self.accel_input_buffer, packed_input)
         
         bytes_read = np.ceil((self.input_bitwidth*self.input_size*8)/64)
-        bytes_read = int(bytes_read*2*input_data_processed.width)
+        bytes_read = int(bytes_read*directions*input_data_processed.width)
 
         self.BLSTM_CTC.numberColumns_V = input_data_processed.width
-        self.BLSTM_CTC.numberColumnsTwice_V = 2*input_data_processed.width
+        self.BLSTM_CTC.numberColumnsTwice_V = directions*input_data_processed.width
         self.BLSTM_CTC.numberBytesRead_V = bytes_read
         self.BLSTM_CTC.input_buffer_V_1 = self.accel_input_buffer.physical_address & 0xffffffff
         self.BLSTM_CTC.input_buffer_V_2 = (self.accel_input_buffer.physical_address >> 32) & 0xffffffff

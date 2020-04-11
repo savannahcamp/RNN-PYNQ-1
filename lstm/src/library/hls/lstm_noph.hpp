@@ -45,7 +45,8 @@
 //NEURON WITHOUT PEEPHOLES
 //===================================================================================================================================================================================
 template
-< 
+<
+unsigned int DIRECTIONS, 
 unsigned int PE,					// Number of neurons to be executed in parallel
 unsigned int SIMD_INPUT, 			// Number of parallel MAC performed in the gates on input pixels
 unsigned int SIMD_RECURRENT, 		// Number of parallel MAC performed in the gates on recurrent path
@@ -99,22 +100,22 @@ void LSTMCell_noPH(uint16_t currentColumn,
 			State_t c_prev,
 			State_t & c_next,
 			OutputActivation_t & h_next, 
-			const ap_uint<BiasWidth_gi> biases_gii[PE][2 * NumberHiddenUnits/PE],
-			const ap_uint<BiasWidth_gi> biases_gih[PE][2 * NumberHiddenUnits/PE],
-			const ap_uint<WeightWidth_gi> weights_gi_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][2 * NumberHiddenUnits/PE],
-			const ap_uint<WeightWidth_gi> weights_gi_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][2 * NumberHiddenUnits/PE],
-			const ap_uint<BiasWidth_gf> biases_gfi[PE][2 * NumberHiddenUnits/PE],
-			const ap_uint<BiasWidth_gf> biases_gfh[PE][2 * NumberHiddenUnits/PE],
-			const ap_uint<WeightWidth_gf> weights_gf_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][2 * NumberHiddenUnits/PE],			
-			const ap_uint<WeightWidth_gf> weights_gf_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][2 * NumberHiddenUnits/PE],			
-			const ap_uint<BiasWidth_go> biases_goi[PE][2 * NumberHiddenUnits/PE],
-			const ap_uint<BiasWidth_go> biases_goh[PE][2 * NumberHiddenUnits/PE],
-			const ap_uint<WeightWidth_go> weights_go_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][2 * NumberHiddenUnits/PE],			
-			const ap_uint<WeightWidth_go> weights_go_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][2 * NumberHiddenUnits/PE],			
-			const ap_uint<BiasWidth_ci> biases_cii[PE][2 * NumberHiddenUnits/PE],
-			const ap_uint<BiasWidth_ci> biases_cih[PE][2 * NumberHiddenUnits/PE],
-			const ap_uint<WeightWidth_ci> weights_ci_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][2 * NumberHiddenUnits/PE], 
-			const ap_uint<WeightWidth_ci> weights_ci_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][2 * NumberHiddenUnits/PE], 
+			const ap_uint<BiasWidth_gi> biases_gii[PE][DIRECTIONS * NumberHiddenUnits/PE],
+			const ap_uint<BiasWidth_gi> biases_gih[PE][DIRECTIONS * NumberHiddenUnits/PE],
+			const ap_uint<WeightWidth_gi> weights_gi_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][DIRECTIONS * NumberHiddenUnits/PE],
+			const ap_uint<WeightWidth_gi> weights_gi_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][DIRECTIONS * NumberHiddenUnits/PE],
+			const ap_uint<BiasWidth_gf> biases_gfi[PE][DIRECTIONS * NumberHiddenUnits/PE],
+			const ap_uint<BiasWidth_gf> biases_gfh[PE][DIRECTIONS * NumberHiddenUnits/PE],
+			const ap_uint<WeightWidth_gf> weights_gf_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][DIRECTIONS * NumberHiddenUnits/PE],			
+			const ap_uint<WeightWidth_gf> weights_gf_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][DIRECTIONS * NumberHiddenUnits/PE],			
+			const ap_uint<BiasWidth_go> biases_goi[PE][DIRECTIONS * NumberHiddenUnits/PE],
+			const ap_uint<BiasWidth_go> biases_goh[PE][DIRECTIONS * NumberHiddenUnits/PE],
+			const ap_uint<WeightWidth_go> weights_go_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][DIRECTIONS * NumberHiddenUnits/PE],			
+			const ap_uint<WeightWidth_go> weights_go_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][DIRECTIONS * NumberHiddenUnits/PE],			
+			const ap_uint<BiasWidth_ci> biases_cii[PE][DIRECTIONS * NumberHiddenUnits/PE],
+			const ap_uint<BiasWidth_ci> biases_cih[PE][DIRECTIONS * NumberHiddenUnits/PE],
+			const ap_uint<WeightWidth_ci> weights_ci_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][DIRECTIONS * NumberHiddenUnits/PE], 
+			const ap_uint<WeightWidth_ci> weights_ci_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][DIRECTIONS * NumberHiddenUnits/PE], 
 			Sigmoid_out_t lut_sigmoid_1[Lut_Entries_Sigmoid], 
 			Tanh_out_t lut_tanh_1[Lut_Entries_Tanh]
 			)
@@ -139,10 +140,10 @@ void LSTMCell_noPH(uint16_t currentColumn,
 	DotProductResult_t_go gox;
 	DotProductResult_t_ci cix;			
 	
-	gix = DotVectorToMatrix<PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, OutputActivation_t, OutputActivationWidth, Bias_t_gi, BiasWidth_gi, Weight_t_gi, WeightWidth_gi, DotProductResult_t_gi, ColumnHeight_t, ColumnHeight, NumberHiddenUnits_t, NumberHiddenUnits>(biases_gii, biases_gih, weights_gi_i, weights_gi_h, image, h_prev, currentHiddenUnit, PE_count);
-	gfx = DotVectorToMatrix<PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, OutputActivation_t, OutputActivationWidth, Bias_t_gf, BiasWidth_gf, Weight_t_gf, WeightWidth_gf, DotProductResult_t_gf, ColumnHeight_t, ColumnHeight, NumberHiddenUnits_t, NumberHiddenUnits>(biases_gfi, biases_gfh, weights_gf_i, weights_gf_h, image, h_prev, currentHiddenUnit, PE_count);
-	gox = DotVectorToMatrix<PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, OutputActivation_t, OutputActivationWidth, Bias_t_go, BiasWidth_go, Weight_t_go, WeightWidth_go, DotProductResult_t_go, ColumnHeight_t, ColumnHeight, NumberHiddenUnits_t, NumberHiddenUnits>(biases_goi, biases_goh, weights_go_i, weights_go_h, image, h_prev, currentHiddenUnit, PE_count);
-	cix = DotVectorToMatrix<PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, OutputActivation_t, OutputActivationWidth, Bias_t_ci, BiasWidth_ci, Weight_t_ci, WeightWidth_ci, DotProductResult_t_ci, ColumnHeight_t, ColumnHeight, NumberHiddenUnits_t, NumberHiddenUnits>(biases_cii, biases_cih, weights_ci_i, weights_ci_h, image, h_prev, currentHiddenUnit, PE_count);
+	gix = DotVectorToMatrix<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, OutputActivation_t, OutputActivationWidth, Bias_t_gi, BiasWidth_gi, Weight_t_gi, WeightWidth_gi, DotProductResult_t_gi, ColumnHeight_t, ColumnHeight, NumberHiddenUnits_t, NumberHiddenUnits>(biases_gii, biases_gih, weights_gi_i, weights_gi_h, image, h_prev, currentHiddenUnit, PE_count);
+	gfx = DotVectorToMatrix<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, OutputActivation_t, OutputActivationWidth, Bias_t_gf, BiasWidth_gf, Weight_t_gf, WeightWidth_gf, DotProductResult_t_gf, ColumnHeight_t, ColumnHeight, NumberHiddenUnits_t, NumberHiddenUnits>(biases_gfi, biases_gfh, weights_gf_i, weights_gf_h, image, h_prev, currentHiddenUnit, PE_count);
+	gox = DotVectorToMatrix<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, OutputActivation_t, OutputActivationWidth, Bias_t_go, BiasWidth_go, Weight_t_go, WeightWidth_go, DotProductResult_t_go, ColumnHeight_t, ColumnHeight, NumberHiddenUnits_t, NumberHiddenUnits>(biases_goi, biases_goh, weights_go_i, weights_go_h, image, h_prev, currentHiddenUnit, PE_count);
+	cix = DotVectorToMatrix<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, OutputActivation_t, OutputActivationWidth, Bias_t_ci, BiasWidth_ci, Weight_t_ci, WeightWidth_ci, DotProductResult_t_ci, ColumnHeight_t, ColumnHeight, NumberHiddenUnits_t, NumberHiddenUnits>(biases_cii, biases_cih, weights_ci_i, weights_ci_h, image, h_prev, currentHiddenUnit, PE_count);
 
 
 	gix_sum = gix;
@@ -176,10 +177,12 @@ void LSTMCell_noPH(uint16_t currentColumn,
 
 
 
+
 //===================================================================================================================================================================================
 // HIDDEN LAYER
 //===================================================================================================================================================================================
-template< 
+template<
+unsigned int DIRECTIONS, 
 unsigned int PE,					// Number of neurons to be executed in parallel
 unsigned int SIMD_INPUT, 			// Number of parallel MAC performed in the gates on input pixels
 unsigned int SIMD_RECURRENT, 		// Number of parallel MAC performed in the gates on recurrent path
@@ -229,22 +232,22 @@ typename Tanh_step_t
 void HiddenLayer_noPH(uint32_t numberOfColumns,
 			  hls::stream<ap_uint<ColumnHeight * PixelWidth> > &image_stream,					  
 			  hls::stream<ap_uint<OutputActivationWidth*PE> > &result_stream,
-			  const ap_uint<BiasWidth_gi> biases_gii[PE][2 * NumberHiddenUnits/PE],
-			  const ap_uint<BiasWidth_gi> biases_gih[PE][2 * NumberHiddenUnits/PE],
-			  const ap_uint<WeightWidth_gi> weights_gi_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][2 * NumberHiddenUnits/PE],
-			  const ap_uint<WeightWidth_gi> weights_gi_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][2 * NumberHiddenUnits/PE],
-			  const ap_uint<BiasWidth_gf> biases_gfi[PE][2 * NumberHiddenUnits/PE],
-			  const ap_uint<BiasWidth_gf> biases_gfh[PE][2 * NumberHiddenUnits/PE],
-			  const ap_uint<WeightWidth_gf> weights_gf_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][2 * NumberHiddenUnits/PE],			
-			  const ap_uint<WeightWidth_gf> weights_gf_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][2 * NumberHiddenUnits/PE],			
-			  const ap_uint<BiasWidth_go> biases_goi[PE][2 * NumberHiddenUnits/PE],
-			  const ap_uint<BiasWidth_go> biases_goh[PE][2 * NumberHiddenUnits/PE],
-			  const ap_uint<WeightWidth_go> weights_go_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][2 * NumberHiddenUnits/PE],			
-			  const ap_uint<WeightWidth_go> weights_go_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][2 * NumberHiddenUnits/PE],			
-			  const ap_uint<BiasWidth_ci> biases_cii[PE][2 * NumberHiddenUnits/PE],
-			  const ap_uint<BiasWidth_ci> biases_cih[PE][2 * NumberHiddenUnits/PE],
-			  const ap_uint<WeightWidth_ci> weights_ci_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][2 * NumberHiddenUnits/PE], 
-			  const ap_uint<WeightWidth_ci> weights_ci_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][2 * NumberHiddenUnits/PE],  
+			  const ap_uint<BiasWidth_gi> biases_gii[PE][DIRECTIONS * NumberHiddenUnits/PE],
+			  const ap_uint<BiasWidth_gi> biases_gih[PE][DIRECTIONS * NumberHiddenUnits/PE],
+			  const ap_uint<WeightWidth_gi> weights_gi_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][DIRECTIONS * NumberHiddenUnits/PE],
+			  const ap_uint<WeightWidth_gi> weights_gi_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][DIRECTIONS * NumberHiddenUnits/PE],
+			  const ap_uint<BiasWidth_gf> biases_gfi[PE][DIRECTIONS * NumberHiddenUnits/PE],
+			  const ap_uint<BiasWidth_gf> biases_gfh[PE][DIRECTIONS * NumberHiddenUnits/PE],
+			  const ap_uint<WeightWidth_gf> weights_gf_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][DIRECTIONS * NumberHiddenUnits/PE],			
+			  const ap_uint<WeightWidth_gf> weights_gf_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][DIRECTIONS * NumberHiddenUnits/PE],			
+			  const ap_uint<BiasWidth_go> biases_goi[PE][DIRECTIONS * NumberHiddenUnits/PE],
+			  const ap_uint<BiasWidth_go> biases_goh[PE][DIRECTIONS * NumberHiddenUnits/PE],
+			  const ap_uint<WeightWidth_go> weights_go_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][DIRECTIONS * NumberHiddenUnits/PE],			
+			  const ap_uint<WeightWidth_go> weights_go_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][DIRECTIONS * NumberHiddenUnits/PE],			
+			  const ap_uint<BiasWidth_ci> biases_cii[PE][DIRECTIONS * NumberHiddenUnits/PE],
+			  const ap_uint<BiasWidth_ci> biases_cih[PE][DIRECTIONS * NumberHiddenUnits/PE],
+			  const ap_uint<WeightWidth_ci> weights_ci_i[SIMD_INPUT][ColumnHeight/SIMD_INPUT][PE][DIRECTIONS * NumberHiddenUnits/PE], 
+			  const ap_uint<WeightWidth_ci> weights_ci_h[SIMD_RECURRENT][NumberHiddenUnits/SIMD_RECURRENT][PE][DIRECTIONS * NumberHiddenUnits/PE],  
 			  Sigmoid_out_t lut_sigmoid_1[Lut_Entries_Sigmoid], 
 			  Tanh_out_t lut_tanh_1[Lut_Entries_Tanh]
 			)
@@ -259,27 +262,34 @@ void HiddenLayer_noPH(uint32_t numberOfColumns,
 		std::cout << "Error: NumberHiddenUnits size has to be multiple of SIMD_RECURRENT" << std::endl;
 	}
 
-	State_t c_prev, c_next, c_reg[2 * NumberHiddenUnits/PE][PE];
+	State_t c_prev, c_next, c_reg[DIRECTIONS * NumberHiddenUnits/PE][PE];
 #pragma HLS ARRAY_PARTITION variable=c_reg complete dim=2
 	OutputActivation_t output;
 
 	ap_uint<ColumnHeight * PixelWidth> local_image;
 	ap_uint<OutputActivationWidth * NumberHiddenUnits> local_input;
-	
-	hls::stream<ap_uint<OutputActivationWidth * NumberHiddenUnits> > recurrent_stream;
+	hls::stream<ap_uint<OutputActivationWidth * NumberHiddenUnits> > recurrent_stream("recurrent_stream");
 #pragma HLS STREAM variable=recurrent_stream depth=4
 
 	ap_uint<OutputActivationWidth * NumberHiddenUnits> output_reg = 0;
-	for(NumberHiddenUnits_t path = 0; path < 2; path++)
+
+	if (DIRECTIONS==2)
 	{
-#pragma HLS PIPELINE II=1 rewind
-		recurrent_stream.write(output_reg);	
-	}		
+		for(NumberHiddenUnits_t path = 0; path < DIRECTIONS; path++)
+		{
+	#pragma HLS PIPELINE II=1 rewind
+			recurrent_stream.write(output_reg);	
+		}		
+	}
+	else
+	{
+		recurrent_stream.write(output_reg);
+	}
 
 	for(uint16_t currentColumn = 0; currentColumn < numberOfColumns; currentColumn++)
 	{
-		for (ap_uint<2> count = 0; count <2; count ++) 
-		{
+		for (ap_uint<DIRECTIONS> count = 0; count <DIRECTIONS; count ++) 
+		{			
 			image_stream.read(local_image);
 			recurrent_stream.read(local_input);
 			for(NumberHiddenUnits_t currentHiddenUnit = 0; currentHiddenUnit < NumberHiddenUnits/PE; currentHiddenUnit++)
@@ -294,7 +304,8 @@ void HiddenLayer_noPH(uint32_t numberOfColumns,
 					c_prev = c_reg[actual_hidden_unit_address][PE_count];
 					
 					LSTMCell_noPH
-					<PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, 
+					<
+					DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, 
 					Bias_t_gi, BiasWidth_gi, Weight_t_gi, WeightWidth_gi, DotProductResult_t_gi, gix_accumulator_t,
 					Bias_t_gf, BiasWidth_gf, Weight_t_gf, WeightWidth_gf, DotProductResult_t_gf, gfx_accumulator_t,
 					Bias_t_go, BiasWidth_go, Weight_t_go, WeightWidth_go, DotProductResult_t_go, gox_accumulator_t,
@@ -304,7 +315,8 @@ void HiddenLayer_noPH(uint32_t numberOfColumns,
 					NumberHiddenUnits_t, NumberHiddenUnits,
 					State_t, 
 					Sigmoid_out_t, Lut_Entries_Sigmoid, Sigmoid_limit_t, Sigmoid_step_t,
-					Tanh_out_t, Lut_Entries_Tanh, Tanh_limit_t, Tanh_step_t>
+					Tanh_out_t, Lut_Entries_Tanh, Tanh_limit_t, Tanh_step_t
+					>
 					(currentColumn,
 					actual_hidden_unit_address, PE_count,
 					local_image,
