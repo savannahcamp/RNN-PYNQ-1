@@ -62,8 +62,8 @@ def test_seq_mnist_ocr():
             hw_ocr.cleanup()
             print("Prec  = {}".format(network))
             print("Label = {}".format(gt))
-            print("Pred  = {}".format(hw_recognized_text))
+            print("Pred  = {}\n".format(hw_recognized_text))
             assert gt == hw_recognized_text
 
 if __name__ == '__main__':
-    test_plain_ocr()
+    test_seq_mnist_ocr()

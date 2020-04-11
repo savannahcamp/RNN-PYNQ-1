@@ -63,7 +63,7 @@ The repo is organized as follows:
 In order to rebuild the hardware designs, the repo should be cloned in a machine with installation of the Vivado Design Suite (tested with 2017.4). 
 Following the step-by-step instructions:
 
-1.	Clone the repository on your linux machine: git clone https://github.com/Xilinx/LSTM-PYNQ.git;
+1.	Clone the repository on your linux machine: git clone https://github.com/ussamazahid96/LSTM-PYNQ.git;
 2.	Move to `<clone_path>/LSTM_PYNQ/lstm/src/network/`
 3.	Set the LSTM_ROOT environment variable to `<clone_path>/LSTM_PYNQ/lstm/src/`
 4.	Launch the shell script make-hw.sh with parameters the target dataset, target network, target platform and mode, with the command `./make-hw.sh {dataset} {network} {platform} {mode}` where:

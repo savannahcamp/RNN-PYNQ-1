@@ -8,7 +8,7 @@ Uni and Bi LSTM topologies, working on different datasets and multiple precision
 For each dataset, there is a folder structure like this:
 
  - `<dataset>/WxAy/` contains the exported weights for a specific precision for both weigths (x bits) and activations (y bits)
- 	Note: To use the unidirectional version, repalace the file as `mv r_model_fw_bw_uni.hpp r_model_fw_bw.hpp` and launch the synthesis. Similarly when running inference on hardware, uncomment the line for `bidirectional_enabled=False` in the [test_ocr.py](https://github.com/ussamazahid96/LSTM-PYNQ/blob/seq_mnist/tests/test_ocr.py)
+ 	Note: To use the unidirectional version, repalace the file as `mv r_model_fw_bw_uni.hpp r_model_fw_bw.hpp` and launch the synthesis. Similarly when running inference on hardware, uncomment the line for `bidirectional_enabled=False` in the [test_ocr.py](https://github.com/ussamazahid96/LSTM-PYNQ/blob/ec0ac07a4414f055099805e496931193d92956aa/tests/test_ocr.py#L56)
  - `<dataset>/top.cpp` is the top level file, synthesized by Vivado HLS, of the LSTM accelerator
  - `<dataset>/hw_config.hpp` contains defines for datatypes used within the LSTM cell
 
