@@ -1,7 +1,6 @@
 #include "hardware_lstm.hpp"
 #include "hw_config.hpp"
 #include "r_model_fw_bw.hpp"
-
 #include <fstream>
 
 void DoCompute(ap_uint<16> numberColumns,
@@ -49,42 +48,58 @@ void DoCompute(ap_uint<16> numberColumns,
 	// This cast will remove the padding from the MSBs..casts intput to output	
 	StreamingCast< ap_uint<StreamPerColumn * DATAWIDTH>, ap_uint<HEIGHT_IN_PIX * PIXELWIDTH> >(stream_column_padded, output_stream_columns, numberColumnsTwice);
 	
-	std::ofstream ofs("/home/uzahid/personal/hls.txt");
-	int s = output_stream_columns.size();
-	std::cout << "Size of the Stream = " << s << '\n';
-	for(int i=0; i<s; i++)
-	{
-		ap_uint<HEIGHT_IN_PIX*PIXELWIDTH> temp = output_stream_columns.read();
-		
-		for(int j=0; j<HEIGHT_IN_PIX; j++)
-		{
-			ap_int<8> pix = temp((j+1)*8-1, j*8);
-			t_fixed_image fpix = *reinterpret_cast<t_fixed_image*>(&pix); 
-			std::cout << fpix << '\n';
-			ofs << fpix << '\n'; 
-		}
-		ofs << '\n'; 
+	// std::ofstream ofs("/home/uzahid/personal/ctc-ocr-brevitas/hls.txt");
+	
+	// int s = output_stream_columns.size();
+	// std::cout << "Size of the Stream = " << s << '\n';
+	// for(int i=0; i<s; i++)
+	// {
+	// 	ap_uint<HEIGHT_IN_PIX*PIXELWIDTH> temp = output_stream_columns.read();	
+	// 	for(int j=0; j<HEIGHT_IN_PIX; j++)
+	// 	{
+	// 		ap_int<8> pix = temp((j+1)*8-1, j*8);
+	// 		t_fixed_image fpix = *reinterpret_cast<t_fixed_image*>(&pix); 
+	// 		std::cout << fpix << '\n';
+	// 		ofs << fpix << '\n'; 
+	// 	}
+	// 	ofs << '\n'; 
+	// }
+	// for(auto nf=0; nf<NUMBER_OF_NEURONS/PE; nf++)
+	// {
+	// 	for(auto pe=0; pe<PE; pe++)
+	// 	{
+	// 		for(auto sf=0; sf<NUMBER_OF_NEURONS/SIMD_RECURRENT; sf++)
+	// 		{
+	// 			for (auto simd=0; simd<SIMD_RECURRENT; simd++)
+	// 			{
+	// 				ap_int<WEIGHTWIDTH> wei = wn_hh[simd][sf][pe][nf];
+	// 				t_fixed_wr fwei = *reinterpret_cast<t_fixed_wr*>(&wei);
+	// 				ofs << fwei << '\n';
+	// 			}
+	// 		}
+	// 	}
+	// }
+	// ofs.close();
+	// exit(1);
 
-	}
-	exit(1);
-
-	// HiddenLayer_noPH
-	// <DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, t_fixed_image, PIXELWIDTH,
-	// t_fixed_bgi, BIASWIDTH, t_fixed_wgi, WEIGHTWIDTH, t_fixed_sum_wgi, t_fixed_gix_sum,
-	// t_fixed_bgf, BIASWIDTH, t_fixed_wgf, WEIGHTWIDTH, t_fixed_sum_wgf, t_fixed_gfx_sum,
-	// t_fixed_bgo, BIASWIDTH,t_fixed_wgo, WEIGHTWIDTH, t_fixed_sum_wgo, t_fixed_gox_sum,
-	// t_fixed_bci, BIASWIDTH, t_fixed_wci, WEIGHTWIDTH, t_fixed_sum_wci, t_fixed_ci_gi_mul,	
-	// t_fixed_recurrent, OUTPUTACTIVATIONHIDDENLAYERWIDTH,
-	// ap_uint<HEIGHT_IN_PIX_TYPEWIDTH>, HEIGHT_IN_PIX,
-	// ap_uint<NUMBER_OF_NEURONS_TYPEWIDTH>, NUMBER_OF_NEURONS,
-	// MAX_NUMBER_COLUMNS_TEST_SET,
-	// t_fixed_state, 
-	// t_fixed_sigma_o, NUMBER_OF_LUT_ETRIES_SIGMOID_1, t_fixed_lut_sigmoid_limit, t_fixed_lut_sigmoid_recip_step,
-	// t_fixed_tanh_o, NUMBER_OF_LUT_ETRIES_TANH_1, t_fixed_lut_tanh_limit, t_fixed_lut_tanh_recip_step
-	// >
-	// (numberColumns, output_stream_columns, output_stream_hidden_layer,
-	// bgi_ih,bgi_hh,wgi_ih,wgi_hh,bgf_ih,bgf_hh,wgf_ih,wgf_hh,bgo_ih,bgo_hh,wgo_ih,wgo_hh,bci_ih,bci_hh,wci_ih,wci_hh, lut_sigmoid_1, lut_tanh_1);
+	GRULayer
+	<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, t_fixed_image, PIXELWIDTH,
+	t_fixed_wr, WEIGHTWIDTH, t_fixed_br, BIASWIDTH, t_fixed_sum_wr, t_fixed_gix_sum,
+	t_fixed_ci_gi_mul, t_fixed_recurrent, OUTPUTACTIVATIONHIDDENLAYERWIDTH,
+	ap_uint<HEIGHT_IN_PIX_TYPEWIDTH>, HEIGHT_IN_PIX,
+	ap_uint<NUMBER_OF_NEURONS_TYPEWIDTH>, NUMBER_OF_NEURONS,
+	MAX_NUMBER_COLUMNS_TEST_SET,
+	t_fixed_state, 
+	t_fixed_sigma_o, NUMBER_OF_LUT_ETRIES_SIGMOID_1, t_fixed_lut_sigmoid_limit, t_fixed_lut_sigmoid_recip_step,
+	t_fixed_tanh_o, NUMBER_OF_LUT_ETRIES_TANH_1, t_fixed_lut_tanh_limit, t_fixed_lut_tanh_recip_step
+	>
+	(numberColumns, output_stream_columns, output_stream_hidden_layer,
+	 wr_ih, wr_hh, br_ih, br_hh,  
+	 wc_ih, wc_hh, bc_ih, bc_hh,  
+	 wn_ih, wn_hh, bn_ih, bn_hh,
+	 lut_sigmoid_1, lut_tanh_1);
 				
+	exit(1);
 	StreamingDataWidthConverter_Batch<OUTPUTACTIVATIONHIDDENLAYERWIDTH*PE, OUTPUTACTIVATIONHIDDENLAYERWIDTH * NUMBER_OF_NEURONS, NUMBER_OF_NEURONS/PE>(output_stream_hidden_layer, output_stream_input_streamer, numberColumnsTwice);
 
 	OutputLayer

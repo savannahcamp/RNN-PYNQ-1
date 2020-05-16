@@ -38,9 +38,9 @@
 #include "utils.hpp"
 #include "lstm_ph.hpp"
 #include "lstm_noph.hpp"
+#include "gru.hpp"
 #include "activations.hpp"
 #include "output_layer.hpp"
-
 #endif
 	
 

@@ -6,25 +6,22 @@
 #define NUMBER_OF_LUT_ETRIES_TANH_1 256
 
 // Dot product WRI, WCI, WNI
-typedef t_fixed_wr_ih t_fixed_wri;
-typedef t_fixed_wc_ih t_fixed_wci;
-typedef t_fixed_wn_ih t_fixed_wni;
+typedef t_fixed_wr_ih t_fixed_wr;
+typedef t_fixed_wc_ih t_fixed_wc;
+typedef t_fixed_wn_ih t_fixed_wn;
 
-typedef t_fixed_br_ih t_fixed_bri;
-typedef t_fixed_bc_ih t_fixed_bci;
-typedef t_fixed_bn_ih t_fixed_bni;
+typedef t_fixed_br_ih t_fixed_br;
+typedef t_fixed_bc_ih t_fixed_bc;
+typedef t_fixed_bn_ih t_fixed_bn;
 
-typedef ap_fixed<16 ,8, AP_RND_ZERO, AP_WRAP> t_fixed_sum_wgi;
-typedef t_fixed_sum_wgi t_fixed_mul_wgi;
+typedef ap_fixed<16 ,8, AP_RND_ZERO, AP_WRAP> t_fixed_sum_wr;
+typedef t_fixed_sum_wr t_fixed_mul_wgi;
 
-typedef ap_fixed<16 ,8, AP_RND_ZERO, AP_WRAP> t_fixed_sum_wgf;
-typedef t_fixed_sum_wgf t_fixed_mul_wgf;
+typedef ap_fixed<16 ,8, AP_RND_ZERO, AP_WRAP> t_fixed_sum_wc;
+typedef t_fixed_sum_wc t_fixed_mul_wgf;
 
-typedef ap_fixed<16 ,8, AP_RND_ZERO, AP_WRAP> t_fixed_sum_wgo;
-typedef t_fixed_sum_wgo t_fixed_mul_wgo;
-
-typedef ap_fixed<16 ,8, AP_RND_ZERO, AP_WRAP> t_fixed_sum_wci;
-typedef t_fixed_sum_wci t_fixed_mul_wci;
+typedef ap_fixed<16 ,8, AP_RND_ZERO, AP_WRAP> t_fixed_sum_wn;
+typedef t_fixed_sum_wn t_fixed_mul_wgo;
 
 // Hidden Layer
 typedef ap_fixed<16 ,8, AP_RND_CONV, AP_SAT> t_fixed_state;
