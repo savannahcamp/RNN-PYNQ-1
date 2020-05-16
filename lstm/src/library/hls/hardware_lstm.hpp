@@ -31,6 +31,9 @@
  *
  */
 
+#ifndef HW_LSTM
+#define HW_LSTM
+
 #include "dv2m.hpp"
 #include "utils.hpp"
 #include "lstm_ph.hpp"
@@ -38,6 +41,6 @@
 #include "activations.hpp"
 #include "output_layer.hpp"
 
-
+#endif
 	
 

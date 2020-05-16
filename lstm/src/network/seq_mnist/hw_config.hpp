@@ -5,15 +5,14 @@
 #define NUMBER_OF_LUT_ETRIES_SIGMOID_1 256
 #define NUMBER_OF_LUT_ETRIES_TANH_1 256
 
-// Dot product WGI, WGF, WGO, WCI
-typedef t_fixed_wgi_ih t_fixed_wgi;
-typedef t_fixed_wgf_ih t_fixed_wgf;
-typedef t_fixed_wgo_ih t_fixed_wgo;
-typedef t_fixed_wci_ih t_fixed_wci;
-typedef t_fixed_bgi_ih t_fixed_bgi;
-typedef t_fixed_bgf_ih t_fixed_bgf;
-typedef t_fixed_bgo_ih t_fixed_bgo;
-typedef t_fixed_bci_ih t_fixed_bci;
+// Dot product WRI, WCI, WNI
+typedef t_fixed_wr_ih t_fixed_wri;
+typedef t_fixed_wc_ih t_fixed_wci;
+typedef t_fixed_wn_ih t_fixed_wni;
+
+typedef t_fixed_br_ih t_fixed_bri;
+typedef t_fixed_bc_ih t_fixed_bci;
+typedef t_fixed_bn_ih t_fixed_bni;
 
 typedef ap_fixed<16 ,8, AP_RND_ZERO, AP_WRAP> t_fixed_sum_wgi;
 typedef t_fixed_sum_wgi t_fixed_mul_wgi;
@@ -25,7 +24,6 @@ typedef ap_fixed<16 ,8, AP_RND_ZERO, AP_WRAP> t_fixed_sum_wgo;
 typedef t_fixed_sum_wgo t_fixed_mul_wgo;
 
 typedef ap_fixed<16 ,8, AP_RND_ZERO, AP_WRAP> t_fixed_sum_wci;
-
 typedef t_fixed_sum_wci t_fixed_mul_wci;
 
 // Hidden Layer

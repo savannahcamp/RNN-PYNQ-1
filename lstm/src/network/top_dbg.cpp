@@ -1,8 +1,7 @@
+#include "bitset"
+#include "hw_config.h"
 #include "hardware_lstm.hpp"
-#include "hw_config.hpp"
 #include "r_model_fw_bw.hpp"
-
-#include <fstream>
 
 void DoCompute(ap_uint<16> numberColumns,
 	    	   ap_uint<16> numberColumnsTwice,
@@ -12,7 +11,9 @@ void DoCompute(ap_uint<16> numberColumns,
 {
 #pragma HLS ALLOCATION instances=DSP48 limit=160 core
 	constexpr unsigned int StreamPerColumn = (HEIGHT_IN_PIX*PIXELWIDTH) / DATAWIDTH + (((HEIGHT_IN_PIX*PIXELWIDTH) % DATAWIDTH)>0); // CEILING
-#pragma HLS DATAFLOW
+	constexpr unsigned int BitPadding = StreamPerColumn*DATAWIDTH - HEIGHT_IN_PIX*PIXELWIDTH;
+	constexpr unsigned int LastStreamBits = DATAWIDTH - BitPadding;
+	#pragma HLS DATAFLOW
 	
 	hls::stream<ap_uint<DATAWIDTH> >output_stream_dma_input("output_stream_dma_input");
 #pragma HLS STREAM variable=output_stream_dma_input depth=2
@@ -48,47 +49,53 @@ void DoCompute(ap_uint<16> numberColumns,
 	
 	// This cast will remove the padding from the MSBs..casts intput to output	
 	StreamingCast< ap_uint<StreamPerColumn * DATAWIDTH>, ap_uint<HEIGHT_IN_PIX * PIXELWIDTH> >(stream_column_padded, output_stream_columns, numberColumnsTwice);
-	
-	std::ofstream ofs("/home/uzahid/personal/hls.txt");
-	int s = output_stream_columns.size();
-	std::cout << "Size of the Stream = " << s << '\n';
-	for(int i=0; i<s; i++)
-	{
-		ap_uint<HEIGHT_IN_PIX*PIXELWIDTH> temp = output_stream_columns.read();
-		
-		for(int j=0; j<HEIGHT_IN_PIX; j++)
-		{
-			ap_int<8> pix = temp((j+1)*8-1, j*8);
-			t_fixed_image fpix = *reinterpret_cast<t_fixed_image*>(&pix); 
-			std::cout << fpix << '\n';
-			ofs << fpix << '\n'; 
-		}
-		ofs << '\n'; 
 
-	}
-	exit(1);
+	HiddenLayer_noPH
+	<PE, SIMD_INPUT, SIMD_RECURRENT, t_fixed_image, PIXELWIDTH,
+	t_fixed_bgi, BIASWIDTH, t_fixed_wgi, WEIGHTWIDTH, t_fixed_sum_wgi, t_fixed_gix_sum,
+	t_fixed_bgf, BIASWIDTH, t_fixed_wgf, WEIGHTWIDTH, t_fixed_sum_wgf, t_fixed_gfx_sum,
+	t_fixed_bgo, BIASWIDTH,t_fixed_wgo, WEIGHTWIDTH, t_fixed_sum_wgo, t_fixed_gox_sum,
+	t_fixed_bci, BIASWIDTH, t_fixed_wci, WEIGHTWIDTH, t_fixed_sum_wci, t_fixed_ci_gi_mul,
+	t_fixed_recurrent, OUTPUTACTIVATIONHIDDENLAYERWIDTH,
+	ap_uint<HEIGHT_IN_PIX_TYPEWIDTH>, HEIGHT_IN_PIX,
+	ap_uint<NUMBER_OF_NEURONS_TYPEWIDTH>, NUMBER_OF_NEURONS,
+	MAX_NUMBER_COLUMNS_TEST_SET,
+	t_fixed_state,
+	t_fixed_sigma_o, NUMBER_OF_LUT_ETRIES_SIGMOID_1, t_fixed_lut_sigmoid_limit, t_fixed_lut_sigmoid_recip_step,
+	t_fixed_tanh_o, NUMBER_OF_LUT_ETRIES_TANH_1, t_fixed_lut_tanh_limit, t_fixed_lut_tanh_recip_step
+	>
+	(numberColumns, output_stream_columns, output_stream_hidden_layer,
+	bgi_ih,bgi_hh,wgi_ih,wgi_hh,bgf_ih,bgf_hh,wgf_ih,wgf_hh,bgo_ih,bgo_hh,wgo_ih,wgo_hh,bci_ih,bci_hh,wci_ih,wci_hh, lut_sigmoid_1, lut_tanh_1);
 
-	// HiddenLayer_noPH
-	// <DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, t_fixed_image, PIXELWIDTH,
-	// t_fixed_bgi, BIASWIDTH, t_fixed_wgi, WEIGHTWIDTH, t_fixed_sum_wgi, t_fixed_gix_sum,
-	// t_fixed_bgf, BIASWIDTH, t_fixed_wgf, WEIGHTWIDTH, t_fixed_sum_wgf, t_fixed_gfx_sum,
-	// t_fixed_bgo, BIASWIDTH,t_fixed_wgo, WEIGHTWIDTH, t_fixed_sum_wgo, t_fixed_gox_sum,
-	// t_fixed_bci, BIASWIDTH, t_fixed_wci, WEIGHTWIDTH, t_fixed_sum_wci, t_fixed_ci_gi_mul,	
-	// t_fixed_recurrent, OUTPUTACTIVATIONHIDDENLAYERWIDTH,
-	// ap_uint<HEIGHT_IN_PIX_TYPEWIDTH>, HEIGHT_IN_PIX,
-	// ap_uint<NUMBER_OF_NEURONS_TYPEWIDTH>, NUMBER_OF_NEURONS,
-	// MAX_NUMBER_COLUMNS_TEST_SET,
-	// t_fixed_state, 
-	// t_fixed_sigma_o, NUMBER_OF_LUT_ETRIES_SIGMOID_1, t_fixed_lut_sigmoid_limit, t_fixed_lut_sigmoid_recip_step,
-	// t_fixed_tanh_o, NUMBER_OF_LUT_ETRIES_TANH_1, t_fixed_lut_tanh_limit, t_fixed_lut_tanh_recip_step
-	// >
-	// (numberColumns, output_stream_columns, output_stream_hidden_layer,
-	// bgi_ih,bgi_hh,wgi_ih,wgi_hh,bgf_ih,bgf_hh,wgf_ih,wgf_hh,bgo_ih,bgo_hh,wgo_ih,wgo_hh,bci_ih,bci_hh,wci_ih,wci_hh, lut_sigmoid_1, lut_tanh_1);
-				
 	StreamingDataWidthConverter_Batch<OUTPUTACTIVATIONHIDDENLAYERWIDTH*PE, OUTPUTACTIVATIONHIDDENLAYERWIDTH * NUMBER_OF_NEURONS, NUMBER_OF_NEURONS/PE>(output_stream_hidden_layer, output_stream_input_streamer, numberColumnsTwice);
 
+//	ap_uint<128*4> arr[224];
+//	int d = output_stream_input_streamer.size();
+//	std::cout << "depth = " << d << '\n';
+//	for (auto i=0; i<d;i++)
+//	{
+//		if(i%2==0)
+//		{
+//			arr[i/2] =  output_stream_input_streamer.read();
+//		}
+//		else
+//			output_stream_input_streamer.read();
+//	}
+//	for(auto j=0;j<224;j++)
+//	{
+//
+//		ap_uint<128*4> temp = arr[j];
+//		for(auto i = 0; i<128;i++)
+//		{
+//			ap_int<4> temp2 = temp((i+1)*4-1,i*4);
+//			t_fixed_image dis = *reinterpret_cast<t_fixed_image *> (&temp2);
+//			std::cout << dis << '\n';
+//		}
+//	}
+//	exit(0);
+
 	OutputLayer
-	<DIRECTIONS,
+	<
 	t_fixed_bfc, FCBIASWIDTH,
 	t_fixed_wfc, FCWEIGHTWIDTH,
 	t_fixed_recurrent, OUTPUTACTIVATIONHIDDENLAYERWIDTH,
@@ -98,14 +105,13 @@ void DoCompute(ap_uint<16> numberColumns,
 	ap_uint<MAX_NUMBER_COLUMNS_TEST_SET_TYPEWIDTH>
 	>			
 	(bfc, wfc, numberColumns, output_stream_input_streamer, output_stream_mac);
-
+	
 	Concatenator
-	<
-	DIRECTIONS,
+	<		
 	t_fixed_sum_fc, OUTPUTACTIVATIONOUTPUTLAYERWIDTH,
 	ap_uint<NUMBER_OF_CLASSES_TYPEWIDTH>, NUMBER_OF_CLASSES,
 	ap_uint<MAX_NUMBER_COLUMNS_TEST_SET_TYPEWIDTH>, MAX_NUMBER_COLUMNS_TEST_SET
-	>
+	>			
 	(numberColumns, output_stream_mac, output_stream_concatenator);
 	
 	MaxPerColumn
@@ -119,7 +125,7 @@ void DoCompute(ap_uint<16> numberColumns,
 
 	FinalLabeling
 	<
-	DIRECTIONS, maxx, 
+	maxx, 
 	ap_uint<NUMBER_OF_CLASSES_TYPEWIDTH>, NUMBER_OF_CLASSES,
 	ap_uint<MAX_NUMBER_COLUMNS_TEST_SET_TYPEWIDTH>, MAX_NUMBER_COLUMNS_TEST_SET
 	>
