@@ -104,7 +104,7 @@ void GRUCell(uint16_t currentColumn,
 {
 
 	// gi_ci_accumulator_t ci_gi_mul; 
-	// gix_accumulator_t gix_sum;, gfx_sum, gox_sum; 
+	gix_accumulator_t grx_sum, gcx_sum, gnx_sum; 
 	
 	// Sigmoid_out_t gr, gz;
 	// Tanh_out_t ci;
@@ -113,29 +113,46 @@ void GRUCell(uint16_t currentColumn,
 	// State_t tmp_c_next;
 	// State_t gf_state_mul;
 
-	DotProductResult_t grx;
-	// DotProductResult_t_gf gfx;
-	// DotProductResult_t_go gox;
-	// DotProductResult_t_ci cix;			
+	DotProductResult_t grx, gcx, gnx, gnx1, gnx2;
 	
-	grx = DotVectorToMatrix<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, 
+	// grx = DotVectorToMatrix<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, 
+	// 						OutputActivation_t, OutputActivationWidth, Bias_t, BiasWidth, 
+	// 						Weight_t, WeightWidth, DotProductResult_t, ColumnHeight_t, 
+	// 						ColumnHeight, NumberHiddenUnits_t, NumberHiddenUnits>
+	// 						(biases_r_ih, biases_r_hh, weights_r_ih, weights_r_hh, image, h_prev, 
+	// 						 currentHiddenUnit, PE_count);
+
+	gcx = DotVectorToMatrix<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, 
 							OutputActivation_t, OutputActivationWidth, Bias_t, BiasWidth, 
 							Weight_t, WeightWidth, DotProductResult_t, ColumnHeight_t, 
 							ColumnHeight, NumberHiddenUnits_t, NumberHiddenUnits>
-							(biases_r_ih, biases_r_hh, weights_r_ih, weights_r_hh, image, h_prev, 
+							(biases_c_ih, biases_c_hh, weights_c_ih, weights_c_hh, image, h_prev, 
 							 currentHiddenUnit, PE_count);
 
-	std::cout << "GRX = " << grx << '\n';
-	exit(1); 
-	// gfx = DotVectorToMatrix<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, OutputActivation_t, OutputActivationWidth, Bias_t_gf, BiasWidth_gf, Weight_t_gf, WeightWidth_gf, DotProductResult_t_gf, ColumnHeight_t, ColumnHeight, NumberHiddenUnits_t, NumberHiddenUnits>(biases_gfi, biases_gfh, weights_gf_i, weights_gf_h, image, h_prev, currentHiddenUnit, PE_count);
-	// gox = DotVectorToMatrix<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, OutputActivation_t, OutputActivationWidth, Bias_t_go, BiasWidth_go, Weight_t_go, WeightWidth_go, DotProductResult_t_go, ColumnHeight_t, ColumnHeight, NumberHiddenUnits_t, NumberHiddenUnits>(biases_goi, biases_goh, weights_go_i, weights_go_h, image, h_prev, currentHiddenUnit, PE_count);
-	// cix = DotVectorToMatrix<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, OutputActivation_t, OutputActivationWidth, Bias_t_ci, BiasWidth_ci, Weight_t_ci, WeightWidth_ci, DotProductResult_t_ci, ColumnHeight_t, ColumnHeight, NumberHiddenUnits_t, NumberHiddenUnits>(biases_cii, biases_cih, weights_ci_i, weights_ci_h, image, h_prev, currentHiddenUnit, PE_count);
+	// gnx1 = DotVectorToOneMatrix<DIRECTIONS, PE, SIMD_INPUT, Pixel_t, PixelWidth, 
+	// 							Bias_t, BiasWidth,Weight_t, WeightWidth, 
+	// 							DotProductResult_t, ColumnHeight_t, ColumnHeight, 
+	// 							NumberHiddenUnits_t, NumberHiddenUnits>
+	// 							(biases_n_ih, weights_n_ih, image, 
+	// 							 currentHiddenUnit, PE_count);
 
+	// gnx2 = DotVectorToOneMatrix<DIRECTIONS, PE, SIMD_RECURRENT, OutputActivation_t, OutputActivationWidth, 
+	// 							Bias_t, BiasWidth, Weight_t, WeightWidth, 
+	// 							DotProductResult_t, NumberHiddenUnits_t, NumberHiddenUnits, 
+	// 							NumberHiddenUnits_t, NumberHiddenUnits>
+	// 							(biases_n_hh, weights_n_hh, h_prev, 
+	// 							 currentHiddenUnit, PE_count);
 
-	// gix_sum = gix;
-	// gfx_sum = gfx;
-	// gox_sum = gox;	
+	grx_sum = grx;
+	gcx_sum = gcx;
+	// gnx_sum = gnx;	
 	
+	std::cout << "GRX = " << grx_sum << '\n';
+	std::cout << "GCX = " << gcx_sum << '\n';
+	// std::cout << "GNX = " << gnx_sum << '\n';
+	
+	exit(1); 
+
 	// gi = sigmoid_lut<Lut_Entries_Sigmoid,gix_accumulator_t,Sigmoid_limit_t,Sigmoid_step_t,Sigmoid_out_t>(gix_sum, lut_sigmoid_1);
 	// gf = sigmoid_lut<Lut_Entries_Sigmoid,gfx_accumulator_t,Sigmoid_limit_t,Sigmoid_step_t,Sigmoid_out_t>(gfx_sum, lut_sigmoid_1);
 	// go = sigmoid_lut<Lut_Entries_Sigmoid,gox_accumulator_t,Sigmoid_limit_t,Sigmoid_step_t,Sigmoid_out_t>(gox_sum, lut_sigmoid_1);

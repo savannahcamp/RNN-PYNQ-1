@@ -1,3 +1,4 @@
+#define AP_INT_MAX_W 2048
 #include "hardware_lstm.hpp"
 #include "hw_config.hpp"
 #include "r_model_fw_bw.hpp"

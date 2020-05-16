@@ -86,7 +86,9 @@ DotProductResult_t DotVectorToMatrix(const ap_uint<BiasWidth> biases_i[PE][(DIRE
 #pragma HLS ARRAY_RESHAPE variable=weights_h complete dim=1
 #pragma HLS ARRAY_RESHAPE variable=weights_i complete dim=3
 #pragma HLS ARRAY_RESHAPE variable=weights_h complete dim=3
-	for(ColumnHeight_t j = 0; j < FoldingInput; j++) {
+	
+	for(ColumnHeight_t j = 0; j < FoldingInput; j++) 
+	{
 #pragma HLS PIPELINE II=1 rewind
 		for(ColumnHeight_t i = 0; i < SIMD_INPUT; i++)		
 		{			
@@ -100,7 +102,9 @@ DotProductResult_t DotVectorToMatrix(const ap_uint<BiasWidth> biases_i[PE][(DIRE
 			mul_pix[i][j] = pixel * weigth;
 		}
 	}
-	for(NumberHiddenUnits_t j = 0; j < FoldingRecurrent; j++) {
+	
+	for(NumberHiddenUnits_t j = 0; j < FoldingRecurrent; j++) 
+	{
 #pragma HLS PIPELINE II=1 rewind
 		for(NumberHiddenUnits_t  i = 0; i < SIMD_RECURRENT; i++)
 		{
@@ -114,7 +118,9 @@ DotProductResult_t DotVectorToMatrix(const ap_uint<BiasWidth> biases_i[PE][(DIRE
 			mul_neuron[i][j] = input * weigth;
 		}
 	}
-	for(ColumnHeight_t j = 0; j < FoldingInput; j++) {
+
+	for(ColumnHeight_t j = 0; j < FoldingInput; j++) 
+	{
 #pragma HLS PIPELINE II=1 rewind
 		for(ColumnHeight_t  i = 0; i < SIMD_INPUT; i++)
 		{
@@ -122,7 +128,9 @@ DotProductResult_t DotVectorToMatrix(const ap_uint<BiasWidth> biases_i[PE][(DIRE
 			sum_pix += mul_pix[i][j];
 		}
 	}
-	for(NumberHiddenUnits_t j = 0; j < FoldingRecurrent; j++) {
+
+	for(NumberHiddenUnits_t j = 0; j < FoldingRecurrent; j++) 
+	{
 #pragma HLS PIPELINE II=1 rewind
 		for(NumberHiddenUnits_t  i = 0; i < SIMD_RECURRENT; i++)
 		{
@@ -131,6 +139,74 @@ DotProductResult_t DotVectorToMatrix(const ap_uint<BiasWidth> biases_i[PE][(DIRE
 		}
 	}
 	sum = (DotProductResult_t)bias_i + (DotProductResult_t)bias_h  + sum_pix + sum_neuron;
+
+	return sum;
+}
+
+
+template
+< 
+unsigned int DIRECTIONS,
+unsigned int PE,
+unsigned int SIMD, 			// Number of parallel MAC performed in the gates on input pixels
+typename Pixel_t, 
+unsigned int PixelWidth, 
+typename Bias_t,
+unsigned int BiasWidth, 
+typename Weight_t,
+unsigned int WeightWidth, 
+typename DotProductResult_t, 
+typename ColumnHeight_t,
+unsigned int ColumnHeight,
+typename NumberHiddenUnits_t,
+unsigned int NumberHiddenUnits
+>
+DotProductResult_t DotVectorToOneMatrix(const ap_uint<BiasWidth> biases_i[PE][(DIRECTIONS * NumberHiddenUnits)/PE],
+				     const ap_uint<WeightWidth> weights_i[SIMD][ColumnHeight/SIMD][PE][(DIRECTIONS * NumberHiddenUnits)/PE],
+				     ap_uint<ColumnHeight * PixelWidth> image_column,
+				     NumberHiddenUnits_t currentHiddenUnit,
+				     NumberHiddenUnits_t PE_count)
+{	
+	constexpr unsigned int FoldingInput = ColumnHeight / SIMD;
+	DotProductResult_t mul_pix[SIMD][FoldingInput];
+	DotProductResult_t sum_pix = 0.0;
+	DotProductResult_t sum = 0.0;
+	ap_int<BiasWidth> bias_i_temp = biases_i[PE_count][currentHiddenUnit];
+	Bias_t bias_i = *reinterpret_cast<Bias_t *>(&bias_i_temp);
+	
+#pragma HLS ARRAY_PARTITION variable=mul_pix complete dim=1
+#pragma HLS ARRAY_RESHAPE variable=weights_i complete dim=1
+#pragma HLS ARRAY_RESHAPE variable=weights_i complete dim=3
+	
+	for(ColumnHeight_t j = 0; j < FoldingInput; j++) 
+	{
+#pragma HLS PIPELINE II=1 rewind
+		for(ColumnHeight_t i = 0; i < SIMD; i++)		
+		{			
+	#pragma HLS UNROLL	
+			unsigned int PixelInColumn = j*SIMD+i;
+			ap_int<PixelWidth> pixel_temp = image_column((PixelInColumn+1)*PixelWidth-1, PixelInColumn*PixelWidth);
+			Pixel_t pixel = *reinterpret_cast<Pixel_t *>(&pixel_temp);
+
+			ap_int<WeightWidth> weight_temp = weights_i[i][j][PE_count][currentHiddenUnit];
+			Weight_t weigth = *reinterpret_cast<Weight_t *>(&weight_temp);
+			mul_pix[i][j] = pixel * weigth;
+		}
+	}
+	
+
+	for(ColumnHeight_t j = 0; j < FoldingInput; j++) 
+	{
+#pragma HLS PIPELINE II=1 rewind
+		for(ColumnHeight_t  i = 0; i < SIMD; i++)
+		{
+	#pragma HLS UNROLL
+			sum_pix += mul_pix[i][j];
+		}
+	}
+
+
+	sum = (DotProductResult_t)bias_i + sum_pix;
 
 	return sum;
 }

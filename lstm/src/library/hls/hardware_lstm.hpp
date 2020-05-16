@@ -41,6 +41,7 @@
 #include "gru.hpp"
 #include "activations.hpp"
 #include "output_layer.hpp"
+
 #endif
 	
 
