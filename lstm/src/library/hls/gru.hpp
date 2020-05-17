@@ -103,24 +103,21 @@ void GRUCell(uint16_t currentColumn,
 
 {
 
-	// gi_ci_accumulator_t ci_gi_mul; 
 	gix_accumulator_t grx_sum, gcx_sum, gnx_sum; 
 	
-	// Sigmoid_out_t gr, gz;
-	// Tanh_out_t ci;
-	// Tanh_out_t tanhf_o;
+	Sigmoid_out_t gr, gc;
 
-	// State_t tmp_c_next;
-	// State_t gf_state_mul;
-
+	OutputActivation_t temp_h_next_mul_c_t, h_prev_mul_c_t;
+	Tanh_out_t temp_h_next;
+	State_t gf_state_mul;
 	DotProductResult_t grx, gcx, gnx, gnx1, gnx2;
 	
-	// grx = DotVectorToMatrix<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, 
-	// 						OutputActivation_t, OutputActivationWidth, Bias_t, BiasWidth, 
-	// 						Weight_t, WeightWidth, DotProductResult_t, ColumnHeight_t, 
-	// 						ColumnHeight, NumberHiddenUnits_t, NumberHiddenUnits>
-	// 						(biases_r_ih, biases_r_hh, weights_r_ih, weights_r_hh, image, h_prev, 
-	// 						 currentHiddenUnit, PE_count);
+	grx = DotVectorToMatrix<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, 
+							OutputActivation_t, OutputActivationWidth, Bias_t, BiasWidth, 
+							Weight_t, WeightWidth, DotProductResult_t, ColumnHeight_t, 
+							ColumnHeight, NumberHiddenUnits_t, NumberHiddenUnits>
+							(biases_r_ih, biases_r_hh, weights_r_ih, weights_r_hh, image, h_prev, 
+							 currentHiddenUnit, PE_count);
 
 	gcx = DotVectorToMatrix<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, 
 							OutputActivation_t, OutputActivationWidth, Bias_t, BiasWidth, 
@@ -129,52 +126,37 @@ void GRUCell(uint16_t currentColumn,
 							(biases_c_ih, biases_c_hh, weights_c_ih, weights_c_hh, image, h_prev, 
 							 currentHiddenUnit, PE_count);
 
-	// gnx1 = DotVectorToOneMatrix<DIRECTIONS, PE, SIMD_INPUT, Pixel_t, PixelWidth, 
-	// 							Bias_t, BiasWidth,Weight_t, WeightWidth, 
-	// 							DotProductResult_t, ColumnHeight_t, ColumnHeight, 
-	// 							NumberHiddenUnits_t, NumberHiddenUnits>
-	// 							(biases_n_ih, weights_n_ih, image, 
-	// 							 currentHiddenUnit, PE_count);
+	gnx1 = DotVectorToOneMatrix<DIRECTIONS, PE, SIMD_INPUT, Pixel_t, PixelWidth, 
+								Bias_t, BiasWidth,Weight_t, WeightWidth, 
+								DotProductResult_t, ColumnHeight_t, ColumnHeight, 
+								NumberHiddenUnits_t, NumberHiddenUnits>
+								(biases_n_ih, weights_n_ih, image, 
+								 currentHiddenUnit, PE_count);
 
-	// gnx2 = DotVectorToOneMatrix<DIRECTIONS, PE, SIMD_RECURRENT, OutputActivation_t, OutputActivationWidth, 
-	// 							Bias_t, BiasWidth, Weight_t, WeightWidth, 
-	// 							DotProductResult_t, NumberHiddenUnits_t, NumberHiddenUnits, 
-	// 							NumberHiddenUnits_t, NumberHiddenUnits>
-	// 							(biases_n_hh, weights_n_hh, h_prev, 
-	// 							 currentHiddenUnit, PE_count);
+	gnx2 = DotVectorToOneMatrix<DIRECTIONS, PE, SIMD_RECURRENT, OutputActivation_t, OutputActivationWidth, 
+								Bias_t, BiasWidth, Weight_t, WeightWidth, 
+								DotProductResult_t, NumberHiddenUnits_t, NumberHiddenUnits, 
+								NumberHiddenUnits_t, NumberHiddenUnits>
+								(biases_n_hh, weights_n_hh, h_prev, 
+								 currentHiddenUnit, PE_count);
 
 	grx_sum = grx;
 	gcx_sum = gcx;
-	// gnx_sum = gnx;	
+		
+	gr = sigmoid_lut<Lut_Entries_Sigmoid,gix_accumulator_t,Sigmoid_limit_t,Sigmoid_step_t,Sigmoid_out_t>(grx_sum, lut_sigmoid_1);
+	gc = sigmoid_lut<Lut_Entries_Sigmoid,gix_accumulator_t,Sigmoid_limit_t,Sigmoid_step_t,Sigmoid_out_t>(gcx_sum, lut_sigmoid_1);
+
+
+	gf_state_mul = gnx1 + (gnx2 * gr);
+	temp_h_next = tanh_lut<Lut_Entries_Tanh,State_t,Tanh_limit_t,Tanh_step_t,Tanh_out_t>(gf_state_mul,lut_tanh_1);
 	
-	std::cout << "GRX = " << grx_sum << '\n';
-	std::cout << "GCX = " << gcx_sum << '\n';
-	// std::cout << "GNX = " << gnx_sum << '\n';
+	temp_h_next_mul_c_t = temp_h_next - (temp_h_next * gc);
+	ap_int<OutputActivationWidth> temp = h_prev((currentHiddenUnit+1)*OutputActivationWidth-1 , currentHiddenUnit*OutputActivationWidth);
+	OutputActivation_t f_h_prev = *reinterpret_cast<OutputActivation_t*>(&temp);
+	h_prev_mul_c_t = f_h_prev * gc;
+	h_next = h_prev_mul_c_t + temp_h_next_mul_c_t;
 	
-	exit(1); 
-
-	// gi = sigmoid_lut<Lut_Entries_Sigmoid,gix_accumulator_t,Sigmoid_limit_t,Sigmoid_step_t,Sigmoid_out_t>(gix_sum, lut_sigmoid_1);
-	// gf = sigmoid_lut<Lut_Entries_Sigmoid,gfx_accumulator_t,Sigmoid_limit_t,Sigmoid_step_t,Sigmoid_out_t>(gfx_sum, lut_sigmoid_1);
-	// go = sigmoid_lut<Lut_Entries_Sigmoid,gox_accumulator_t,Sigmoid_limit_t,Sigmoid_step_t,Sigmoid_out_t>(gox_sum, lut_sigmoid_1);
-	// ci = tanh_lut<Lut_Entries_Tanh,DotProductResult_t_ci,Tanh_limit_t,Tanh_step_t,Tanh_out_t>(cix,lut_tanh_1);
-
-	// ci_gi_mul = ci * gi;
-
-	// if(currentColumn > 0)
-	// {
-	// 	gf_state_mul = gf * c_prev;
-	// 	tmp_c_next = ci_gi_mul + gf_state_mul;
-	// }
-	// else
-	// {
-	// 	tmp_c_next = ci_gi_mul;
-	// }
-
-
-	// tanhf_o = tanh_lut<Lut_Entries_Tanh,State_t,Tanh_limit_t,Tanh_step_t,Tanh_out_t>(tmp_c_next,lut_tanh_1);
-
-	// h_next = tanhf_o * go;
-	// c_next = tmp_c_next;
+	std::cout << h_next << '\n';
 
 }
 
@@ -316,11 +298,12 @@ void GRULayer(uint32_t numberOfColumns,
 					output_reg(((currentHiddenUnit*PE + PE_count) + 1) * OutputActivationWidth - 1, (currentHiddenUnit*PE + PE_count) * OutputActivationWidth) = temp_output;
 				} // pe
 				result_stream.write(temp_output_packed);
-			}//neurons	
+			}//neurons
 			if(currentColumn < numberOfColumns - 1)
 				recurrent_stream.write(output_reg);
 		}// backward/forward	
 	}//column
+	exit(1);	
 }
 
 #endif
