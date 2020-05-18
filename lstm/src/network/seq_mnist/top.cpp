@@ -44,10 +44,12 @@ void DoCompute(ap_uint<16> numberColumns,
 	Mem2Stream<DATAWIDTH>(input_buffer, output_stream_dma_input, numberBytesRead);
 	
 	// Converts data widths of streams into multiple or submultiples	
-	StreamingDataWidthConverter_Batch<DATAWIDTH, StreamPerColumn * DATAWIDTH, StreamPerColumn>(output_stream_dma_input, stream_column_padded, numberColumnsTwice);
+	StreamingDataWidthConverter_Batch<DATAWIDTH, StreamPerColumn * DATAWIDTH, StreamPerColumn>
+								(output_stream_dma_input, stream_column_padded, numberColumnsTwice);
 	
 	// This cast will remove the padding from the MSBs..casts intput to output	
-	StreamingCast< ap_uint<StreamPerColumn * DATAWIDTH>, ap_uint<HEIGHT_IN_PIX * PIXELWIDTH> >(stream_column_padded, output_stream_columns, numberColumnsTwice);
+	StreamingCast< ap_uint<StreamPerColumn * DATAWIDTH>, ap_uint<HEIGHT_IN_PIX * PIXELWIDTH> >
+								(stream_column_padded, output_stream_columns, numberColumnsTwice);
 	
 	// std::ofstream ofs("/home/uzahid/personal/ctc-ocr-brevitas/hls.txt");
 	
@@ -87,10 +89,10 @@ void DoCompute(ap_uint<16> numberColumns,
 	<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, t_fixed_image, PIXELWIDTH,
 	t_fixed_wr, WEIGHTWIDTH, t_fixed_br, BIASWIDTH, t_fixed_sum_wr, t_fixed_gix_sum,
 	t_fixed_ci_gi_mul, t_fixed_recurrent, OUTPUTACTIVATIONHIDDENLAYERWIDTH,
+	t_fixed_state,
 	ap_uint<HEIGHT_IN_PIX_TYPEWIDTH>, HEIGHT_IN_PIX,
 	ap_uint<NUMBER_OF_NEURONS_TYPEWIDTH>, NUMBER_OF_NEURONS,
 	MAX_NUMBER_COLUMNS_TEST_SET,
-	t_fixed_state, 
 	t_fixed_sigma_o, NUMBER_OF_LUT_ETRIES_SIGMOID_1, t_fixed_lut_sigmoid_limit, t_fixed_lut_sigmoid_recip_step,
 	t_fixed_tanh_o, NUMBER_OF_LUT_ETRIES_TANH_1, t_fixed_lut_tanh_limit, t_fixed_lut_tanh_recip_step
 	>
@@ -99,9 +101,17 @@ void DoCompute(ap_uint<16> numberColumns,
 	 wc_ih, wc_hh, bc_ih, bc_hh,  
 	 wn_ih, wn_hh, bn_ih, bn_hh,
 	 lut_sigmoid_1, lut_tanh_1);
+	
+
+
 				
+	StreamingDataWidthConverter_Batch
+	<OUTPUTACTIVATIONHIDDENLAYERWIDTH*PE, 
+	OUTPUTACTIVATIONHIDDENLAYERWIDTH * NUMBER_OF_NEURONS, 
+	NUMBER_OF_NEURONS/PE
+	>
+	(output_stream_hidden_layer, output_stream_input_streamer, numberColumnsTwice);
 	exit(1);
-	StreamingDataWidthConverter_Batch<OUTPUTACTIVATIONHIDDENLAYERWIDTH*PE, OUTPUTACTIVATIONHIDDENLAYERWIDTH * NUMBER_OF_NEURONS, NUMBER_OF_NEURONS/PE>(output_stream_hidden_layer, output_stream_input_streamer, numberColumnsTwice);
 
 	OutputLayer
 	<DIRECTIONS,
