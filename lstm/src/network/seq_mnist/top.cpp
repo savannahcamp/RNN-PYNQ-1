@@ -2,7 +2,7 @@
 #include "hardware_lstm.hpp"
 #include "hw_config.hpp"
 #include "r_model_fw_bw.hpp"
-#include <fstream>
+#include<fstream>
 
 void DoCompute(ap_uint<16> numberColumns,
 	    	   ap_uint<16> numberColumnsTwice,
@@ -26,7 +26,10 @@ void DoCompute(ap_uint<16> numberColumns,
 	hls::stream<ap_uint<OUTPUTACTIVATIONHIDDENLAYERWIDTH*PE> > output_stream_hidden_layer("output_stream_hidden_layer");
 #pragma HLS STREAM variable=output_stream_hidden_layer depth=2
 
-	hls::stream<ap_uint<OUTPUTACTIVATIONHIDDENLAYERWIDTH * NUMBER_OF_NEURONS> > output_stream_input_streamer("output_stream_input_streamer");
+	hls::stream<ap_uint<FCINBITWIDTH * PE> > output_stream_thresh_layer("output_stream_thresh_layer");
+#pragma HLS STREAM variable=output_stream_thresh_layer depth=2
+
+	hls::stream<ap_uint<FCINBITWIDTH * NUMBER_OF_NEURONS> > output_stream_input_streamer("output_stream_input_streamer");
 #pragma HLS STREAM variable=output_stream_input_streamer depth=2
 
 	hls::stream<t_fixed_sum_fc> output_stream_mac("output_stream_mac");
@@ -51,7 +54,7 @@ void DoCompute(ap_uint<16> numberColumns,
 	StreamingCast< ap_uint<StreamPerColumn * DATAWIDTH>, ap_uint<HEIGHT_IN_PIX * PIXELWIDTH> >
 								(stream_column_padded, output_stream_columns, numberColumnsTwice);
 	
-	// std::ofstream ofs("/home/uzahid/personal/ctc-ocr-brevitas/hls.txt");
+	// std::ofstream ofs("/home/uzahid/personal/LSTM-PYNQ/lstm/src/network/hls.txt");
 	
 	// int s = output_stream_columns.size();
 	// std::cout << "Size of the Stream = " << s << '\n';
@@ -86,7 +89,8 @@ void DoCompute(ap_uint<16> numberColumns,
 	// exit(1);
 
 	GRULayer
-	<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, t_fixed_image, PIXELWIDTH,
+	<
+	DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, t_fixed_image, PIXELWIDTH,
 	t_fixed_wr, WEIGHTWIDTH, t_fixed_br, BIASWIDTH, t_fixed_sum_wr, t_fixed_gix_sum,
 	t_fixed_ci_gi_mul, t_fixed_recurrent, OUTPUTACTIVATIONHIDDENLAYERWIDTH,
 	t_fixed_state,
@@ -102,22 +106,44 @@ void DoCompute(ap_uint<16> numberColumns,
 	 wn_ih, wn_hh, bn_ih, bn_hh,
 	 lut_sigmoid_1, lut_tanh_1);
 	
+	Thresholding_Batch
+	<
+	NUMBER_OF_NEURONS, PE,
+	Slice<t_fixed_recurrent>, Slice<ap_int<FCINBITWIDTH>>
+	>
+	(output_stream_hidden_layer, output_stream_thresh_layer, thresholds, numberColumnsTwice);
 
 
-				
 	StreamingDataWidthConverter_Batch
-	<OUTPUTACTIVATIONHIDDENLAYERWIDTH*PE, 
-	OUTPUTACTIVATIONHIDDENLAYERWIDTH * NUMBER_OF_NEURONS, 
+	<
+	FCINBITWIDTH * PE, 
+	FCINBITWIDTH * NUMBER_OF_NEURONS, 
 	NUMBER_OF_NEURONS/PE
 	>
-	(output_stream_hidden_layer, output_stream_input_streamer, numberColumnsTwice);
-	exit(1);
+	(output_stream_thresh_layer, output_stream_input_streamer, numberColumnsTwice);
+	
+	// int s = output_stream_input_streamer.size();
+	// std::cout << "Size of the Stream = " << s << '\n';
+	// for(int i=0; i<s; i++)
+	// {
+	// 	ap_uint<FCINBITWIDTH * NUMBER_OF_NEURONS> temp = output_stream_input_streamer.read();	
+	// 	for(int j=0; j<NUMBER_OF_NEURONS; j++)
+	// 	{
+	// 		ap_int<FCINBITWIDTH> pix = temp((j+1)*FCINBITWIDTH-1, j*FCINBITWIDTH);
+	// 		t_fixed_fc_in fpix = *reinterpret_cast<t_fixed_fc_in*>(&pix); 
+	// 		// std::cout << fpix << '\n';
+	// 		ofs << fpix << '\n'; 
+	// 	}
+	// 	// ofs << '\n'; 
+	// }
+	// ofs.close();
+	// exit(1);
 
 	OutputLayer
 	<DIRECTIONS,
 	t_fixed_bfc, FCBIASWIDTH,
 	t_fixed_wfc, FCWEIGHTWIDTH,
-	t_fixed_recurrent, OUTPUTACTIVATIONHIDDENLAYERWIDTH,
+	t_fixed_fc_in, FCINBITWIDTH,
 	t_fixed_sum_fc, OUTPUTACTIVATIONOUTPUTLAYERWIDTH,
 	ap_uint<NUMBER_OF_NEURONS_TYPEWIDTH>, NUMBER_OF_NEURONS,
 	ap_uint<NUMBER_OF_CLASSES_TYPEWIDTH>, NUMBER_OF_CLASSES,
@@ -210,6 +236,9 @@ void topLevel_BLSTM_CTC(ap_uint<32> numberColumns,
 #pragma HLS ARRAY_RESHAPE variable=bgo_hh complete dim=1
 #pragma HLS ARRAY_RESHAPE variable=bci_ih complete dim=1
 #pragma HLS ARRAY_RESHAPE variable=bci_hh complete dim=1
+
+#pragma HLS ARRAY_PARTITION variable=thresholds.m_thresholds complete dim=1
+#pragma HLS ARRAY_PARTITION variable=thresholds.m_thresholds complete dim=3
 
 #pragma HLS ARRAY_RESHAPE variable=wfc complete dim=1
 

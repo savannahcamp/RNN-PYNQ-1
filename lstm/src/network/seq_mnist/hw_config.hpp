@@ -52,6 +52,8 @@ typedef ap_fixed<OUTPUTACTIVATIONOUTPUTLAYERWIDTH,8, AP_RND_CONV, AP_WRAP> t_fix
 typedef ap_fixed<PIXELWIDTH ,1, AP_RND_ZERO, AP_WRAP> t_fixed_image;
 typedef ap_fixed<OUTPUTACTIVATIONHIDDENLAYERWIDTH ,1, AP_RND_CONV, AP_SAT> t_fixed_recurrent;
 
+typedef ap_fixed<FCINBITWIDTH ,1, AP_RND_CONV, AP_SAT> t_fixed_fc_in;
+
 typedef t_fixed_sum_fc t_fixed_mul_fc;
 
 // DATA STRUCTURES

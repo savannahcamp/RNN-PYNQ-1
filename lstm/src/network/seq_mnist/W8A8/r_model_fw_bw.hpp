@@ -226384,7 +226384,7 @@ const ap_uint<8> bn_hh [1][256] = { { 0x0,
 
 
 //threholds
-static ThresholdsActivation<256,1,14, ap_fixed<16 ,8, AP_RND_CONV, AP_SAT>, ap_fixed<FCINBITWIDTH, 1>, MIN_VAL> thresholds = {
+static ThresholdsActivation<256,1,14, ap_fixed<OUTPUTACTIVATIONHIDDENLAYERWIDTH ,1, AP_RND_CONV, AP_SAT>, ap_int<FCINBITWIDTH>, MIN_VAL> thresholds = {
 {
 {
 {

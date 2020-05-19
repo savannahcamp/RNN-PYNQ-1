@@ -39,6 +39,7 @@
 #include "dv2m.hpp"
 #include <hls_stream.h>
 #include "activations.hpp"
+#include <iomanip>
 
 
 //===================================================================================================================================================================================
@@ -61,11 +62,11 @@ typename gix_accumulator_t,
 typename gi_ci_accumulator_t, 
 typename OutputActivation_t,
 unsigned int OutputActivationWidth,
+typename State_t,
 typename ColumnHeight_t,
 unsigned int ColumnHeight,
 typename NumberHiddenUnits_t,
 unsigned int NumberHiddenUnits, 
-typename State_t, 
 typename Sigmoid_out_t,
 unsigned int Lut_Entries_Sigmoid, 
 typename Sigmoid_limit_t,
@@ -108,8 +109,8 @@ void GRUCell(uint16_t currentColumn,
 	Sigmoid_out_t gr, gc;
 
 	OutputActivation_t temp_h_next_mul_c_t, h_prev_mul_c_t;
-	Tanh_out_t temp_h_next;
 	State_t gf_state_mul;
+	Tanh_out_t temp_h_next;
 	DotProductResult_t grx, gcx, gnx, gnx1, gnx2;
 	
 	grx = DotVectorToMatrix<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, 
@@ -146,18 +147,31 @@ void GRUCell(uint16_t currentColumn,
 	gr = sigmoid_lut<Lut_Entries_Sigmoid,gix_accumulator_t,Sigmoid_limit_t,Sigmoid_step_t,Sigmoid_out_t>(grx_sum, lut_sigmoid_1);
 	gc = sigmoid_lut<Lut_Entries_Sigmoid,gix_accumulator_t,Sigmoid_limit_t,Sigmoid_step_t,Sigmoid_out_t>(gcx_sum, lut_sigmoid_1);
 
-
+	
 	gf_state_mul = gnx1 + (gnx2 * gr);
 	temp_h_next = tanh_lut<Lut_Entries_Tanh,State_t,Tanh_limit_t,Tanh_step_t,Tanh_out_t>(gf_state_mul,lut_tanh_1);
 	
-	temp_h_next_mul_c_t = temp_h_next - (temp_h_next * gc);
 	ap_int<OutputActivationWidth> temp = h_prev((currentHiddenUnit+1)*OutputActivationWidth-1 , currentHiddenUnit*OutputActivationWidth);
 	OutputActivation_t f_h_prev = *reinterpret_cast<OutputActivation_t*>(&temp);
-	h_prev_mul_c_t = f_h_prev * gc;
-	h_next = h_prev_mul_c_t + temp_h_next_mul_c_t;
 	
-	std::cout << h_next << '\n';
-
+	temp_h_next_mul_c_t = f_h_prev - temp_h_next;
+	h_prev_mul_c_t = temp_h_next_mul_c_t * gc;
+	h_next = temp_h_next + h_prev_mul_c_t;
+	
+	// if((currentColumn == 1) & (currentHiddenUnit == 117))
+	// {
+		// std::cout << std::fixed;
+		// std::cout << std::setprecision(8);
+		// std::cout << h_next << '\n';
+	// 	std::cout << image << '\n';	
+	// 	std::cout << f_h_prev << '\n';		
+	// 	std::cout << gr << '\n';	
+	// 	std::cout << gc << '\n';
+	// 	std::cout << temp_h_next << '\n';
+	// 	std::cout << temp_h_next_mul_c_t << '\n';
+	// 	std::cout << h_prev_mul_c_t << '\n';
+	// 	exit(1);
+	// }
 }
 
 
@@ -182,12 +196,12 @@ typename gix_accumulator_t,
 typename gi_ci_accumulator_t,
 typename OutputActivation_t,
 unsigned int OutputActivationWidth,
+typename State_t,
 typename ColumnHeight_t,
 unsigned int ColumnHeight,
 typename NumberHiddenUnits_t,
 unsigned int NumberHiddenUnits,
 unsigned int MaxNumberColumns,
-typename State_t, 
 typename Sigmoid_out_t,
 unsigned int Lut_Entries_Sigmoid, 
 typename Sigmoid_limit_t,
@@ -276,9 +290,9 @@ void GRULayer(uint32_t numberOfColumns,
 					DotProductResult_t, gix_accumulator_t, 
 					gi_ci_accumulator_t,
 					OutputActivation_t, OutputActivationWidth,
+					State_t,
 					ColumnHeight_t, ColumnHeight, 
 					NumberHiddenUnits_t, NumberHiddenUnits,
-					State_t, 
 					Sigmoid_out_t, Lut_Entries_Sigmoid, Sigmoid_limit_t, Sigmoid_step_t,
 					Tanh_out_t, Lut_Entries_Tanh, Tanh_limit_t, Tanh_step_t
 					>
@@ -302,8 +316,7 @@ void GRULayer(uint32_t numberOfColumns,
 			if(currentColumn < numberOfColumns - 1)
 				recurrent_stream.write(output_reg);
 		}// backward/forward	
-	}//column
-	exit(1);	
+	}//column	
 }
 
 #endif
