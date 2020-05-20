@@ -54,22 +54,9 @@ void DoCompute(ap_uint<16> numberColumns,
 	StreamingCast< ap_uint<StreamPerColumn * DATAWIDTH>, ap_uint<HEIGHT_IN_PIX * PIXELWIDTH> >
 								(stream_column_padded, output_stream_columns, numberColumnsTwice);
 	
-	// std::ofstream ofs("/home/uzahid/personal/LSTM-PYNQ/lstm/src/network/hls.txt");
+	// std::ofstream ofs("/home/uzahid/personal/LSTM-PYNQ/lstm/src/network/hls_str.txt");
 	
-	// int s = output_stream_columns.size();
-	// std::cout << "Size of the Stream = " << s << '\n';
-	// for(int i=0; i<s; i++)
-	// {
-	// 	ap_uint<HEIGHT_IN_PIX*PIXELWIDTH> temp = output_stream_columns.read();	
-	// 	for(int j=0; j<HEIGHT_IN_PIX; j++)
-	// 	{
-	// 		ap_int<8> pix = temp((j+1)*8-1, j*8);
-	// 		t_fixed_image fpix = *reinterpret_cast<t_fixed_image*>(&pix); 
-	// 		std::cout << fpix << '\n';
-	// 		ofs << fpix << '\n'; 
-	// 	}
-	// 	ofs << '\n'; 
-	// }
+
 	// for(auto nf=0; nf<NUMBER_OF_NEURONS/PE; nf++)
 	// {
 	// 	for(auto pe=0; pe<PE; pe++)
@@ -106,12 +93,30 @@ void DoCompute(ap_uint<16> numberColumns,
 	 wn_ih, wn_hh, bn_ih, bn_hh,
 	 lut_sigmoid_1, lut_tanh_1);
 	
+
+	// int s = output_stream_hidden_layer.size();
+	// std::cout << "Size of the Stream = " << s << '\n';
+	// for(int i=0; i<s; i++)
+	// {
+	// 	ap_int<OUTPUTACTIVATIONOUTPUTLAYERWIDTH*PE> temp = output_stream_hidden_layer.read();	
+	// 	// for(int j=0; j<HEIGHT_IN_PIX; j++)
+	// 	// {
+	// 		// ap_int<8> pix = temp((j+1)*8-1, j*8);
+	// 		t_fixed_recurrent fpix = *reinterpret_cast<t_fixed_recurrent*>(&temp); 
+	// 		// std::cout << fpix << '\n';
+	// 		ofs << fpix << '\n'; 
+	// 	// }
+	// }
+	// ofs.close();
+	// exit(1);
+
 	Thresholding_Batch
 	<
+	DIRECTIONS,
 	NUMBER_OF_NEURONS, PE,
 	Slice<t_fixed_recurrent>, Slice<ap_int<FCINBITWIDTH>>
 	>
-	(output_stream_hidden_layer, output_stream_thresh_layer, thresholds, numberColumnsTwice);
+	(output_stream_hidden_layer, output_stream_thresh_layer, thresholds, numberColumns);
 
 
 	StreamingDataWidthConverter_Batch
@@ -228,14 +233,12 @@ void topLevel_BLSTM_CTC(ap_uint<32> numberColumns,
 #pragma HLS ARRAY_RESHAPE variable=wci_ih complete dim=1
 #pragma HLS ARRAY_RESHAPE variable=wci_hh complete dim=1*/
 
-#pragma HLS ARRAY_RESHAPE variable=bgi_ih complete dim=1
-#pragma HLS ARRAY_RESHAPE variable=bgi_hh complete dim=1
-#pragma HLS ARRAY_RESHAPE variable=bgf_ih complete dim=1
-#pragma HLS ARRAY_RESHAPE variable=bgf_hh complete dim=1
-#pragma HLS ARRAY_RESHAPE variable=bgo_ih complete dim=1
-#pragma HLS ARRAY_RESHAPE variable=bgo_hh complete dim=1
-#pragma HLS ARRAY_RESHAPE variable=bci_ih complete dim=1
-#pragma HLS ARRAY_RESHAPE variable=bci_hh complete dim=1
+#pragma HLS ARRAY_RESHAPE variable=br_ih complete dim=1
+#pragma HLS ARRAY_RESHAPE variable=br_hh complete dim=1
+#pragma HLS ARRAY_RESHAPE variable=bc_ih complete dim=1
+#pragma HLS ARRAY_RESHAPE variable=bc_hh complete dim=1
+#pragma HLS ARRAY_RESHAPE variable=bn_ih complete dim=1
+#pragma HLS ARRAY_RESHAPE variable=bn_hh complete dim=1
 
 #pragma HLS ARRAY_PARTITION variable=thresholds.m_thresholds complete dim=1
 #pragma HLS ARRAY_PARTITION variable=thresholds.m_thresholds complete dim=3

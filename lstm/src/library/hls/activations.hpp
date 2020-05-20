@@ -214,7 +214,7 @@ public:
 
 
 template <
-    unsigned IMG_HEIGHT, unsigned numPEs,
+    unsigned DIRECTIONS, unsigned IMG_HEIGHT, unsigned numPEs,
     typename TSrcI = Identity, typename TDstI = Identity,
     typename TI, typename TO, typename TA>
 void Thresholding_Batch(hls::stream<TI> &in,
@@ -224,7 +224,7 @@ void Thresholding_Batch(hls::stream<TI> &in,
 {
   // how many different rows each neuron will compute
   // alternatively: number of vertical matrix chunks
-  unsigned const NF = IMG_HEIGHT / numPEs;
+  unsigned const NF = (DIRECTIONS*IMG_HEIGHT) / numPEs;
   unsigned nf = 0;
 
   // everything merged into a common iteration space (one "big" loop instead

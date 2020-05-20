@@ -39,7 +39,7 @@
 #include "dv2m.hpp"
 #include <hls_stream.h>
 #include "activations.hpp"
-#include <iomanip>
+// #include <iomanip>
 
 
 //===================================================================================================================================================================================
@@ -77,6 +77,7 @@ typename Tanh_limit_t,
 typename Tanh_step_t
 >
 void GRUCell(uint16_t currentColumn,
+			NumberHiddenUnits_t currentNeuron,
 			NumberHiddenUnits_t currentHiddenUnit,
 			NumberHiddenUnits_t PE_count,
 			ap_uint<ColumnHeight  * PixelWidth> image,
@@ -104,14 +105,12 @@ void GRUCell(uint16_t currentColumn,
 
 {
 
-	gix_accumulator_t grx_sum, gcx_sum, gnx_sum; 
-	
-	Sigmoid_out_t gr, gc;
-
-	OutputActivation_t temp_h_next_mul_c_t, h_prev_mul_c_t;
 	State_t gf_state_mul;
+	Sigmoid_out_t gr, gc;
 	Tanh_out_t temp_h_next;
+	gix_accumulator_t grx_sum, gcx_sum, gnx_sum; 
 	DotProductResult_t grx, gcx, gnx, gnx1, gnx2;
+	OutputActivation_t temp_h_next_mul_c_t, h_prev_mul_c_t;
 	
 	grx = DotVectorToMatrix<DIRECTIONS, PE, SIMD_INPUT, SIMD_RECURRENT, Pixel_t, PixelWidth, 
 							OutputActivation_t, OutputActivationWidth, Bias_t, BiasWidth, 
@@ -147,11 +146,9 @@ void GRUCell(uint16_t currentColumn,
 	gr = sigmoid_lut<Lut_Entries_Sigmoid,gix_accumulator_t,Sigmoid_limit_t,Sigmoid_step_t,Sigmoid_out_t>(grx_sum, lut_sigmoid_1);
 	gc = sigmoid_lut<Lut_Entries_Sigmoid,gix_accumulator_t,Sigmoid_limit_t,Sigmoid_step_t,Sigmoid_out_t>(gcx_sum, lut_sigmoid_1);
 
-	
 	gf_state_mul = gnx1 + (gnx2 * gr);
 	temp_h_next = tanh_lut<Lut_Entries_Tanh,State_t,Tanh_limit_t,Tanh_step_t,Tanh_out_t>(gf_state_mul,lut_tanh_1);
-	
-	ap_int<OutputActivationWidth> temp = h_prev((currentHiddenUnit+1)*OutputActivationWidth-1 , currentHiddenUnit*OutputActivationWidth);
+	ap_int<OutputActivationWidth> temp = h_prev((currentNeuron+1)*OutputActivationWidth-1 , currentNeuron*OutputActivationWidth);
 	OutputActivation_t f_h_prev = *reinterpret_cast<OutputActivation_t*>(&temp);
 	
 	temp_h_next_mul_c_t = f_h_prev - temp_h_next;
@@ -160,9 +157,12 @@ void GRUCell(uint16_t currentColumn,
 	
 	// if((currentColumn == 1) & (currentHiddenUnit == 117))
 	// {
-		// std::cout << std::fixed;
-		// std::cout << std::setprecision(8);
-		// std::cout << h_next << '\n';
+	// if (currentHiddenUnit >= 128)
+	// {
+	// 	std::cout << std::fixed;
+	// 	std::cout << std::setprecision(8);
+	// 	std::cout << h_next << '\n';
+	// }
 	// 	std::cout << image << '\n';	
 	// 	std::cout << f_h_prev << '\n';		
 	// 	std::cout << gr << '\n';	
@@ -297,6 +297,7 @@ void GRULayer(uint32_t numberOfColumns,
 					Tanh_out_t, Lut_Entries_Tanh, Tanh_limit_t, Tanh_step_t
 					>
 					(currentColumn,
+					currentHiddenUnit,
 					actual_hidden_unit_address, PE_count,
 					local_image,
 					local_input,

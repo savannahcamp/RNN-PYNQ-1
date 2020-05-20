@@ -23,7 +23,7 @@ tests/sds_trace_data.dat
 lstm/src/build/
 
 #vivado builds
-lstm/src/network/output/
+lstm/src/network/output*
 lstm/src/network/vivado*
 lstm/src/network/NA/
 lstm/src/network/.Xil/

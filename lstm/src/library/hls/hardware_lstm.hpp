@@ -34,11 +34,11 @@
 #ifndef HW_LSTM
 #define HW_LSTM
 
+#include "gru.hpp"
 #include "dv2m.hpp"
 #include "utils.hpp"
 #include "lstm_ph.hpp"
 #include "lstm_noph.hpp"
-#include "gru.hpp"
 #include "activations.hpp"
 #include "output_layer.hpp"
 
