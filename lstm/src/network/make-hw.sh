@@ -43,11 +43,13 @@
 ###############################################################################
 
 
-NETWORKS=$(ls -d ./plain/W*A*/ | cut -f3 -d'/' | tr "\n" " ")
+NETWORKS=$(ls -d ./seq_mnist/* | cut -f3 -d'/' | tr "\n" " ")
+PRECISIONS=$(ls -d ./plain/bilstm/W*A*/ | cut -f4 -d'/' | tr "\n" " ")
 if [ "$#" -ne 4 ]; then
-  echo "Usage: $0 <dataset> <network> <platform> <mode>" >&2
+  echo "Usage: $0 <dataset> <network> <precision> <platform> <mode>" >&2
   echo "where <dataset> = plain, seq_mnist" >&2
   echo "where <network> = $NETWORKS" >&2
+  echo "where <precision> = $PRECISIONS" >&2
   echo "<platform> = pynqZ1-Z2, ultra96, zc706" >&2
   echo "<mode> = regenerate (h)ls only, (b)itstream only, (a)ll" >&2
   exit 1
@@ -55,8 +57,9 @@ fi
 
 DATASET=$1
 NETWORK=$2
-PLATFORM=$3
-MODE=$4
+PRECISION=$3
+PLATFORM=$4
+MODE=$5
 PATH_TO_VIVADO=$(which vivado)
 PATH_TO_VIVADO_HLS=$(which vivado_hls)
 
@@ -77,8 +80,8 @@ fi
 
 NETWORK_PATH=$LSTM_ROOT/network
 
-HLS_SRC_DIR="$NETWORK_PATH/$DATASET/$NETWORK"
-HLS_OUT_DIR="$NETWORK_PATH/output/hls-syn/$DATASET-$NETWORK-$PLATFORM"
+HLS_SRC_DIR="$NETWORK_PATH/$DATASET/$NETWORK/$PRECISION"
+HLS_OUT_DIR="$NETWORK_PATH/output/hls-syn/$DATASET-$NETWORK-$PRECISION-$PLATFORM"
 
 HLS_SCRIPT=$NETWORK_PATH/hls-syn.tcl
 HLS_IP_REPO="$HLS_OUT_DIR/sol1/impl/ip"
@@ -86,7 +89,7 @@ HLS_IP_REPO="$HLS_OUT_DIR/sol1/impl/ip"
 VIVADO_HLS_LOG="$NETWORK_PATH/output/hls-syn/vivado_hls.log"
 
 HLS_REPORT_PATH="$HLS_OUT_DIR/sol1/syn/report/topLevel_BLSTM_CTC_csynth.rpt"
-REPORT_OUT_DIR="$NETWORK_PATH/output/report/$NETWORK-$PLATFORM"
+REPORT_OUT_DIR="$NETWORK_PATH/output/report/$NETWORK-$PRECISION-$PLATFORM"
 
 
 VIVADO_SCRIPT_DIR=$LSTM_ROOT/library/script/$PLATFORM
@@ -99,8 +102,8 @@ if [[ ("$MODE" == "h") || ("$MODE" == "a")  ]]; then
   OLDDIR=$(pwd)
   echo "Calling Vivado HLS for hardware synthesis..."
   cd $HLS_OUT_DIR/..
-  TEST_INPUT="$LSTM_ROOT/../../tests/Test_images/$DATASET/$NETWORK/test_image.txt"
-  TEST_RESULT="$LSTM_ROOT/../../tests/Test_images/$DATASET/$NETWORK/test_image_gt.txt"
+  TEST_INPUT="$LSTM_ROOT/../../tests/Test_images/$DATASET/$PRECISION/test_image.txt"
+  TEST_RESULT="$LSTM_ROOT/../../tests/Test_images/$DATASET/$PRECISION/test_image_gt.txt"
   ALPHABET="$LSTM_ROOT/../datasets/$DATASET/alphabet.txt"
   
   if [[ ("$PLATFORM" == "pynqZ1-Z2") ]]; then
@@ -116,7 +119,7 @@ if [[ ("$MODE" == "h") || ("$MODE" == "a")  ]]; then
     echo "Error: Platform not supported. Please choose between zc706 and pynqZ1-Z2."
     exit 1
   fi
-  vivado_hls -f $HLS_SCRIPT -tclargs $DATASET-$NETWORK-$PLATFORM $HLS_SRC_DIR $ALPHABET $TEST_INPUT $TEST_RESULT $PLATFORM_PART $TARGET_CLOCK
+  vivado_hls -f $HLS_SCRIPT -tclargs $DATASET-$NETWORK-$PRECISION-$PLATFORM $HLS_SRC_DIR $ALPHABET $TEST_INPUT $TEST_RESULT $PLATFORM_PART $TARGET_CLOCK
   if cat $VIVADO_HLS_LOG | grep "ERROR"; then
     echo "Error in Vivado_HLS"
     exit 1	
@@ -134,12 +137,11 @@ fi
 
 # generate bitstream if requested
 
-TARGET_NAME="$DATASET-$NETWORK-$PLATFORM"
+TARGET_NAME="$DATASET-$NETWORK-$PRECISION-$PLATFORM"
 VIVADO_OUT_DIR="$NETWORK_PATH/output/vivado/$TARGET_NAME"
 BITSTREAM_PATH="$NETWORK_PATH/output/bitstream"
-TARGET_BITSTREAM="$BITSTREAM_PATH/$DATASET-$NETWORK-$PLATFORM.bit"
-TARGET_TCL="$BITSTREAM_PATH/$DATASET-$NETWORK-$PLATFORM.tcl"
-TARGET_HWH="$BITSTREAM_PATH/$DATASET-$NETWORK-$PLATFORM.hwh"
+TARGET_BITSTREAM="$BITSTREAM_PATH/$DATASET-$NETWORK-$PRECISION-$PLATFORM.bit"
+TARGET_HWH="$BITSTREAM_PATH/$DATASET-$NETWORK-$PRECISION-$PLATFORM.hwh"
 
 if [[ ("$MODE" == "b") || ("$MODE" == "a")  ]]; then
   mkdir -p "$NETWORK_PATH/output/vivado"

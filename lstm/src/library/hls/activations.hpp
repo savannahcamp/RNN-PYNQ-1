@@ -56,11 +56,11 @@ Output_t sigmoid_lut(Input_t & input, Output_t lut_sigmoid[NUMBER_OF_LUT_ENTRIES
 	// If we are outside of LUT range
 	if (input_temp < lower_limit)
 	{
-		output = 0.0;//lut_sigmoid[0];
+		output = 0.0;
 	}
 	else if (input_temp > upper_limit)
 	{
-		output = 0.99609375;//lut_sigmoid[NUMBER_OF_LUT_ENTRIES-1];
+		output = 0.99609375;
 	}
 	else
 	{
@@ -94,11 +94,11 @@ Output_t tanh_lut(Input_t & input, Output_t lut_tanh[NUMBER_OF_LUT_ENTRIES])
 	// If we are outside of LUT range
 	if (input_temp < lower_limit)
 	{
-		output = -1.0;//lut_tanh[0];
+		output = -1.0;
 	}
 	else if (input_temp > upper_limit)
 	{
-		output = 0.9921875;//lut_tanh[NUMBER_OF_LUT_ENTRIES-1];
+		output = 0.9921875;
 	}
 	else
 	{

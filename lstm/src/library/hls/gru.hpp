@@ -39,7 +39,6 @@
 #include "dv2m.hpp"
 #include <hls_stream.h>
 #include "activations.hpp"
-// #include <iomanip>
 
 
 //===================================================================================================================================================================================
@@ -154,24 +153,6 @@ void GRUCell(uint16_t currentColumn,
 	temp_h_next_mul_c_t = f_h_prev - temp_h_next;
 	h_prev_mul_c_t = temp_h_next_mul_c_t * gc;
 	h_next = temp_h_next + h_prev_mul_c_t;
-	
-	// if((currentColumn == 1) & (currentHiddenUnit == 117))
-	// {
-	// if (currentHiddenUnit < 128)
-	// {
-	// 	std::cout << std::fixed;
-	// 	std::cout << std::setprecision(8);
-	// 	std::cout << h_next << '\n';
-	// }
-	// 	std::cout << image << '\n';	
-	// 	std::cout << f_h_prev << '\n';		
-	// 	std::cout << gr << '\n';	
-	// 	std::cout << gc << '\n';
-	// 	std::cout << temp_h_next << '\n';
-	// 	std::cout << temp_h_next_mul_c_t << '\n';
-	// 	std::cout << h_prev_mul_c_t << '\n';
-	// 	exit(1);
-	// }
 }
 
 
