@@ -157,7 +157,7 @@ void GRUCell(uint16_t currentColumn,
 	
 	// if((currentColumn == 1) & (currentHiddenUnit == 117))
 	// {
-	// if (currentHiddenUnit >= 128)
+	// if (currentHiddenUnit < 128)
 	// {
 	// 	std::cout << std::fixed;
 	// 	std::cout << std::setprecision(8);

@@ -54,7 +54,7 @@ void DoCompute(ap_uint<16> numberColumns,
 	StreamingCast< ap_uint<StreamPerColumn * DATAWIDTH>, ap_uint<HEIGHT_IN_PIX * PIXELWIDTH> >
 								(stream_column_padded, output_stream_columns, numberColumnsTwice);
 	
-	// std::ofstream ofs("/home/uzahid/personal/LSTM-PYNQ/lstm/src/network/hls_str.txt");
+	// std::ofstream ofs("/home/uzahid/personal/LSTM-PYNQ/lstm/src/network/hls.txt");
 	
 
 	// for(auto nf=0; nf<NUMBER_OF_NEURONS/PE; nf++)
