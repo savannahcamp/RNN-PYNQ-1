@@ -45,7 +45,7 @@
 
 NETWORKS=$(ls -d ./seq_mnist/* | cut -f3 -d'/' | tr "\n" " ")
 PRECISIONS=$(ls -d ./plain/bilstm/W*A*/ | cut -f4 -d'/' | tr "\n" " ")
-if [ "$#" -ne 4 ]; then
+if [ "$#" -ne 5 ]; then
   echo "Usage: $0 <dataset> <network> <precision> <platform> <mode>" >&2
   echo "where <dataset> = plain, seq_mnist" >&2
   echo "where <network> = $NETWORKS" >&2

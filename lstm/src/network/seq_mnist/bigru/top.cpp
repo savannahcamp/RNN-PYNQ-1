@@ -116,7 +116,7 @@ void DoCompute(ap_uint<16> numberColumns,
 	NUMBER_OF_NEURONS, PE,
 	Slice<t_fixed_recurrent>, Slice<ap_int<FCINBITWIDTH>>
 	>
-	(output_stream_hidden_layer, output_stream_thresh_layer, thresholds, numberColumns);
+	(output_stream_hidden_layer, output_stream_thresh_layer, thresholds, neg_idx, numberColumns);
 
 
 	StreamingDataWidthConverter_Batch

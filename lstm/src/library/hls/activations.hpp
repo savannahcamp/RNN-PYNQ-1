@@ -220,6 +220,7 @@ template <
 void Thresholding_Batch(hls::stream<TI> &in,
                         hls::stream<TO> &out,
                         TA const &activation,
+                        ap_int<2> const neg_idx[numPEs][DIRECTIONS*IMG_HEIGHT/numPEs],
                         int const reps)
 {
   // how many different rows each neuron will compute
@@ -238,6 +239,7 @@ void Thresholding_Batch(hls::stream<TI> &in,
     {
 #pragma HLS UNROLL
       auto const act = TSrcI()(inElem);
+      act(pe,0) = act(pe,0) * neg_idx[numPEs][nf];
       outElem(pe,0,1) = activation.activate(nf, pe, act(pe,0));
     }
     out.write(outElem);
