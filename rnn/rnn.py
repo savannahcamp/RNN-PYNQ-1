@@ -45,19 +45,19 @@ else:
 
 RUNTIME_HW = "libhw"
 
-LSTM_ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
-LSTM_BIT_DIR = os.path.join(LSTM_ROOT_DIR, 'bitstreams')
-LSTM_DATA_DIR = os.path.join(LSTM_ROOT_DIR, 'datasets')
+RNN_ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
+RNN_BIT_DIR = os.path.join(RNN_ROOT_DIR, 'bitstreams')
+RNN_DATA_DIR = os.path.join(RNN_ROOT_DIR, 'datasets')
 
 
-class PynqLSTM(object):
+class PynqRNN(object):
     __metaclass__ = ABCMeta
     
-    def __init__(self, runtime, dataset, network, load_overlay, bitstream_path=None):
-        self.bitstream_name="{}-{}-{}.bit".format(dataset, network, PLATFORM)
+    def __init__(self, runtime, dataset, network, precision, load_overlay, bitstream_path=None):
+        self.bitstream_name="{}-{}-{}-{}.bit".format(dataset, network, precision, PLATFORM)
         if runtime == RUNTIME_HW:
             if bitstream_path is None:
-                self.bitstream_path=os.path.join(LSTM_BIT_DIR, dataset, network, self.bitstream_name)
+                self.bitstream_path=os.path.join(RNN_BIT_DIR, dataset, network, precision, self.bitstream_name)
             else:
                 self.bitstream_path=bitstream_path
             self.overlay = Overlay(self.bitstream_path, download=load_overlay)
@@ -65,7 +65,7 @@ class PynqLSTM(object):
                 raise RuntimeError("Incorrect Overlay loaded")
         self.BLSTM_CTC = self.overlay.topLevel_BLSTM_CTC_0.register_map
 
-        self.input_bitwidth = int(network[-1])
+        self.input_bitwidth = int(precision[-1])
         self.accel_input_buffer = None
         self.accel_output_buffer = None
 

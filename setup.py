@@ -32,26 +32,26 @@ from setuptools import setup, find_packages
 import subprocess
 import sys
 import shutil
-import lstm
+import rnn
 import os
 from glob import glob
 import site 
 
 if 'BOARD' not in os.environ or not (os.environ['BOARD'] == 'Pynq-Z1' or os.environ['BOARD'] == 'Pynq-Z2' \
     or os.environ['BOARD'] == 'ZC706' or os.environ['BOARD'] == 'Ultra96'):
-    print("Only supported on a ZC706, Pynq Z1 or Z2 boards")
+    print("Only supported on a ZC706, Ultra96, Pynq Z1 or Z2 boards")
     exit(1)
 
 setup(
-    name = "lstm-pynq",
-    version = lstm.__version__,
+    name = "rnn-pynq",
+    version = rnn.__version__,
     license = '3-Clause BSD License',
     author = "Vladimir Rybalkin, Mohsin Ghaffar, Norbert Wehn, Alessandro Pappalardo, Giulio Gambardella, Michael Gross, Michaela Blott",
     include_package_data = True,
-    packages = ['lstm'],
+    packages = ['rnn'],
     package_data = {
     '' : ['*.bit','*.tcl', '*.so','*.txt'],
     },    
-    data_files = [(os.path.join('/home/xilinx/jupyter_notebooks/lstm',root.replace('notebooks/','')), [os.path.join(root, f) for f in files]) for root, dirs, files in os.walk('notebooks/')],
-    description = "OCR using a hardware LSTM neural network"
+    data_files = [(os.path.join('/home/xilinx/jupyter_notebooks/rnn',root.replace('notebooks/','')), [os.path.join(root, f) for f in files]) for root, dirs, files in os.walk('notebooks/')],
+    description = "OCR using a hardware Recurrent neural network"
 )

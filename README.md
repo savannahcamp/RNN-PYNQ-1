@@ -6,10 +6,10 @@
 4. Added Support and example for unidirectional LSTM
 5. Added Uni and Bidirectional GRU
 
-# LSTM-PYNQ Pip Installable Package
+# RNN-PYNQ Pip Installable Package
 
-This repo contains the pip install package for Quantized LSTM on PYNQ. 
-Currently one overlay is included, that performs Optical Character Recognition (OCR) of a plain-text dataset provided by [Insiders Technologies GmbH](https://www.insiders-technologies.de/home.html) and seq_mnist.
+This repo contains the pip install package for Quantized RNNs on PYNQ. 
+Currently one overlay is included, that performs Optical Character Recognition (OCR) of a plain-text dataset provided by [Insiders Technologies GmbH](https://www.insiders-technologies.de/home.html) and sequential mnist.
 
 If you find it useful, we would appreciate a citation to:
 
@@ -42,39 +42,40 @@ This repo is a joint release of University of Kaiserslautern, [Microelectronic S
 In order to install it to your PYNQ (on PYNQ v2.5), connect to the board, open a terminal and type:
 
 ```
-sudo pip3.6 install git+https://github.com/ussamazahid96/LSTM-PYNQ.git
+sudo pip3.6 install git+https://github.com/ussamazahid96/RNN-PYNQ.git
 ```
 
-This will install the LSTM-PYNQ package to your board, and create a **lstm** directory in the Jupyter home area. You will find the Jupyter notebooks to test the LSTM in this directory. 
+This will install the RNN-PYNQ package to your board, and create a **rnn** directory in the Jupyter home area. You will find the Jupyter notebooks to test the RNN in this directory. 
  
 ## Repo organization 
 
 The repo is organized as follows:
--   *lstm*: contains the pip installed package
+-   *rnn*: contains the pip installed package
     -	*bitstreams*: bitstreams for the plain and sequential mnist OCR overlay.
     -	*datasets*: contains support files for working with a given dataset.
     -	*src*: contains the sources and scripts to regenerate the available overlays
-        - *library*: FINN library for HLS LSTM descriptions, host code, script to rebuilt and drivers for the PYNQ (please refer to README for more details)
-        - *network*: LSTM topologies HLS top functions on multiple datasets, host code and make script for HW and SW built (please refer to README for more details)
--	*notebooks*: lists a set of python notebooks examples, that during installation will be moved in `/home/xilinx/jupyter_notebooks/lstm/` folder.
+        - *library*: FINN library for HLS RNN descriptions, host code, script to rebuilt and drivers for the PYNQ (please refer to README for more details)
+        - *network*: RNN topologies HLS top functions on multiple datasets, host code and make script for HW and SW built (please refer to README for more details)
+-	*notebooks*: lists a set of python notebooks examples, that during installation will be moved in `/home/xilinx/jupyter_notebooks/rnn/` folder.
 -	*tests*: contains test scripts and test images
 
 ## Hardware design rebuilt
 
-In order to rebuild the hardware designs, the repo should be cloned in a machine with installation of the Vivado Design Suite (tested with 2017.4). 
+In order to rebuild the hardware designs, the repo should be cloned in a machine with installation of the Vivado Design Suite (tested with 2019.2). 
 Following the step-by-step instructions:
 
-1.	Clone the repository on your linux machine: git clone https://github.com/ussamazahid96/LSTM-PYNQ.git;
-2.	Move to `<clone_path>/LSTM_PYNQ/lstm/src/network/`
-3.	Set the LSTM_ROOT environment variable to `<clone_path>/LSTM_PYNQ/lstm/src/`
-4.	Launch the shell script make-hw.sh with parameters the target dataset, target network, target platform and mode, with the command `./make-hw.sh {dataset} {network} {platform} {mode}` where:
+1.	Clone the repository on your linux machine: git clone https://github.com/ussamazahid96/RNN-PYNQ.git;
+2.	Move to `<clone_path>/RNN-PYNQ/rnn/src/network/`
+3.	Set the RNN_ROOT environment variable to `<clone_path>/RNN-PYNQ/rnn/src/`
+4.	Launch the shell script make-hw.sh with parameters the target dataset, target network, target platform and mode, with the command `./make-hw.sh {dataset} {network} {precision} {platform} {mode}` where:
 	- dataset can be plain or seq_mnist;
-	- network depends on the precision you want for weights and activations (e.g., WxAy features x bits for Weights and y bits for activations) - check the available configuration in the dataset folder at `<clone_path>/LSTM_PYNQ/lstm/src/network/<dataset>`;
+  - network can be bilstm, bigru, unilstm, unigru
+	- precision depends on the precision you want for weights and activations (e.g., WxAy features x bits for Weights and y bits for activations) - check the available configuration in the dataset folder at `<clone_path>/RNN-PYNQ/rnn/src/network/<dataset>`;
 	- platform is pynq;
 	- mode can be `h` to launch Vivado HLS synthesis, `b` to launch the Vivado project (needs HLS synthesis results), `a` to launch both.
-5.	The results will be visible in `<clone_path>/LSTM_PYNQ/lstm/src/network/output/` that is organized as follows:
+5.	The results will be visible in `<clone_path>/RNN-PYNQ/rnn/src/network/output/` that is organized as follows:
 	- bitstream: contains the generated bitstream(s);
 	- hls-syn: contains the Vivado HLS generated RTL and IP (in the subfolder named as the target network);
 	- report: contains the Vivado and Vivado HLS reports;
 	- vivado: contains the Vivado project.
-6.	Copy the generated bitstream and hwh script on the PYNQ board `<pip_installation_path>/lstm/bitstreams/`
+6.	Copy the generated bitstream and hwh script on the PYNQ board `<pip_installation_path>/rnn/bitstreams/`

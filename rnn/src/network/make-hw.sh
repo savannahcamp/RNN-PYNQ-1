@@ -63,8 +63,8 @@ MODE=$5
 PATH_TO_VIVADO=$(which vivado)
 PATH_TO_VIVADO_HLS=$(which vivado_hls)
 
-if [ -z "$LSTM_ROOT" ]; then
-    export LSTM_ROOT="$( ( cd "$(dirname "$0")/.."; pwd) )"
+if [ -z "$RNN_ROOT" ]; then
+    export RNN_ROOT="$( ( cd "$(dirname "$0")/.."; pwd) )"
 fi
 
 if [ -z "$PATH_TO_VIVADO" ]; then
@@ -78,7 +78,7 @@ if [ -z "$PATH_TO_VIVADO_HLS" ]; then
 fi
 
 
-NETWORK_PATH=$LSTM_ROOT/network
+NETWORK_PATH=$RNN_ROOT/network
 
 HLS_SRC_DIR="$NETWORK_PATH/$DATASET/$NETWORK/$PRECISION"
 HLS_OUT_DIR="$NETWORK_PATH/output/hls-syn/$DATASET-$NETWORK-$PRECISION-$PLATFORM"
@@ -92,7 +92,7 @@ HLS_REPORT_PATH="$HLS_OUT_DIR/sol1/syn/report/topLevel_BLSTM_CTC_csynth.rpt"
 REPORT_OUT_DIR="$NETWORK_PATH/output/report/$NETWORK-$PRECISION-$PLATFORM"
 
 
-VIVADO_SCRIPT_DIR=$LSTM_ROOT/library/script/$PLATFORM
+VIVADO_SCRIPT_DIR=$RNN_ROOT/library/script/$PLATFORM
 VIVADO_SCRIPT=$VIVADO_SCRIPT_DIR/make-vivado-proj.tcl
 
 # regenerate HLS if requested
@@ -102,9 +102,9 @@ if [[ ("$MODE" == "h") || ("$MODE" == "a")  ]]; then
   OLDDIR=$(pwd)
   echo "Calling Vivado HLS for hardware synthesis..."
   cd $HLS_OUT_DIR/..
-  TEST_INPUT="$LSTM_ROOT/../../tests/Test_images/$DATASET/$PRECISION/test_image.txt"
-  TEST_RESULT="$LSTM_ROOT/../../tests/Test_images/$DATASET/$PRECISION/test_image_gt.txt"
-  ALPHABET="$LSTM_ROOT/../datasets/$DATASET/alphabet.txt"
+  TEST_INPUT="$RNN_ROOT/../../tests/Test_images/$DATASET/$PRECISION/test_image.txt"
+  TEST_RESULT="$RNN_ROOT/../../tests/Test_images/$DATASET/$PRECISION/test_image_gt.txt"
+  ALPHABET="$RNN_ROOT/../datasets/$DATASET/alphabet.txt"
   
   if [[ ("$PLATFORM" == "pynqZ1-Z2") ]]; then
     PLATFORM_PART="xc7z020clg400-1"

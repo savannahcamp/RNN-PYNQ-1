@@ -20,12 +20,12 @@ tests/sds_trace_data.dat
 .vscode/
 
 #CMake build
-lstm/src/build/
+rnn/src/build/
 
 #vivado builds
-lstm/src/network/output*
-lstm/src/network/vivado*
-lstm/src/network/NA/
-lstm/src/network/.Xil/
+rnn/src/network/output*
+rnn/src/network/vivado*
+rnn/src/network/NA/
+rnn/src/network/.Xil/
 
 

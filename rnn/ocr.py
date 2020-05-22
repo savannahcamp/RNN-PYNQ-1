@@ -33,18 +33,18 @@ import time
 import numpy as np
 from .input_handling import InputImage, Alphabets
 from abc import ABCMeta, abstractmethod, abstractproperty
-from lstm import PynqLSTM, RUNTIME_HW, LSTM_DATA_DIR, PlainImagePreprocessor
+from rnn import PynqRNN, RUNTIME_HW, RNN_DATA_DIR, PlainImagePreprocessor
 
 MAX_OCR_LENGTH = 1024
 
-class PynqOCR(PynqLSTM):
+class PynqOCR(PynqRNN):
     __metaclass__ = ABCMeta
 
-    def __init__(self, runtime, dataset, network, load_overlay, preprocessor, bitstream_path=None):
-        super(PynqOCR, self).__init__(runtime, dataset, network, load_overlay, bitstream_path)
+    def __init__(self, runtime, dataset, network, precision, load_overlay, preprocessor, bitstream_path=None):
+        super(PynqOCR, self).__init__(runtime, dataset, network, precision, load_overlay, bitstream_path)
         self.alphabet_path = os.path.join(LSTM_DATA_DIR, dataset, "alphabet.txt")
         self.preprocessor = preprocessor
-        self.input_bitwidth = int(network[-1])
+        self.input_bitwidth = int(precision[-1])
 
     @property
     def ops_per_seq_element(self):
@@ -75,12 +75,13 @@ class PynqOCR(PynqLSTM):
 
 class PynqPlainOCR(PynqOCR):
 
-    def __init__(self, runtime=RUNTIME_HW, network="W4A4", load_overlay=True, bitstream_path=None):
+    def __init__(self, runtime=RUNTIME_HW, network="bilstm", precision="W2A2", load_overlay=True, bitstream_path=None):
         super(PynqPlainOCR, self).__init__(runtime, 
-                                           "plain", 
-                                           network,
+                                           "plain",
+                                           network, 
+                                           precision,
                                            load_overlay, 
-                                           PlainImagePreprocessor(self.input_size, int(network[-1])),
+                                           PlainImagePreprocessor(self.input_size, int(precision[-1])),
                                            bitstream_path=bitstream_path)
 
     @property
@@ -109,12 +110,13 @@ class PynqPlainOCR(PynqOCR):
 
 class PynqSeqMnistOCR(PynqOCR):
 
-    def __init__(self, runtime=RUNTIME_HW, network="W4A4", load_overlay=True, bitstream_path=None):
+    def __init__(self, runtime=RUNTIME_HW, network="bigru", precision="W2A2", load_overlay=True, bitstream_path=None):
         super(PynqSeqMnistOCR, self).__init__(runtime, 
-                                           "seq_mnist", 
-                                           network,
+                                           "seq_mnist",
+                                           network, 
+                                           precision,
                                            load_overlay, 
-                                           PlainImagePreprocessor(self.input_size, int(network[-1])),
+                                           PlainImagePreprocessor(self.input_size, int(precision[-1])),
                                            bitstream_path=bitstream_path)
         self.bidirectional = True
 

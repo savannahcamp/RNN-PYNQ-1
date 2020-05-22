@@ -29,38 +29,42 @@
 #   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import lstm
-from PIL import Image
-import numpy as np
+import rnn
 import pytest
+import numpy as np
+from PIL import Image
 
 def test_plain_ocr():
-    networks = ["W2A2", "W4A8"]
+    precisions = ["W2A2", "W4A8"]
     test_dir = os.path.dirname(os.path.realpath(__file__))
-    for network in networks:
-        hw_ocr = lstm.PynqPlainOCR(runtime=lstm.RUNTIME_HW, network=network)
-        im = Image.open(os.path.join(test_dir, 'Test_images', 'plain', network, '010077.bin.png'))
-        with open(os.path.join(test_dir, 'Test_images', 'plain', network, 'test_image_gt.txt'), 'r') as f:
+    for precision in precisions:
+        hw_ocr = rnn.PynqPlainOCR(runtime=rnn.RUNTIME_HW, precision=precision)
+        im = Image.open(os.path.join(test_dir, 'Test_images', 'plain', precision, '010077.bin.png'))
+        with open(os.path.join(test_dir, 'Test_images', 'plain', precision, 'test_image_gt.txt'), 'r') as f:
+            print("Prec  = {}".format(precision))            
             gt = f.read().replace('\n', '')
             hw_result = hw_ocr.inference(im)
             _, _, hw_recognized_text = hw_result
             hw_ocr.cleanup()
+            print("Label = {}".format(gt))
+            print("Pred  = {}\n".format(hw_recognized_text))
             assert gt == hw_recognized_text
 
 def test_seq_mnist_ocr():
-    networks = ["W2A2", "W2A4","W4A4","W4A8", "W8A8"]
+    network = "bigru"
+    precisions = ["W2A2", "W4A4", "W8A8"]#,"W4A4","W4A8", "W8A8"]
     test_dir = os.path.dirname(os.path.realpath(__file__))
-    for network in networks:
-        hw_ocr = lstm.PynqSeqMnistOCR(runtime=lstm.RUNTIME_HW, network=network)
-        # uncomment this if using uni birectional LSTM
+    for precision in precisions:
+        hw_ocr = rnn.PynqSeqMnistOCR(runtime=rnn.RUNTIME_HW, network=network, precision=precision)
+        # uncomment this if using uni birectional rnn
         # hw_ocr.bidirectional_enabled = False
-        im = Image.open(os.path.join(test_dir, 'Test_images', 'seq_mnist', network, 'test_image.png'))
-        with open(os.path.join(test_dir, 'Test_images', 'seq_mnist', network, 'test_image_gt.txt'), 'r') as f:
+        im = Image.open(os.path.join(test_dir, 'Test_images', 'seq_mnist', precision, 'test_image.png'))
+        with open(os.path.join(test_dir, 'Test_images', 'seq_mnist', precision, 'test_image_gt.txt'), 'r') as f:
+            print("Prec  = {}".format(precision))
             gt = f.read().replace('\n', '')
             hw_result = hw_ocr.inference(im)
             _, _, hw_recognized_text = hw_result
             hw_ocr.cleanup()
-            print("Prec  = {}".format(network))
             print("Label = {}".format(gt))
             print("Pred  = {}\n".format(hw_recognized_text))
             assert gt == hw_recognized_text

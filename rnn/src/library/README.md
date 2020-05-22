@@ -1,8 +1,8 @@
-# lstm-library
+# RNN-library
 
-This is the FINN library for LSTMs and contains four folders:
+This is the FINN library for RNNs and contains four folders:
 
-- "hls" contains the LSTM hardware library (the templatized streaming components in HLS).
+- "hls" contains the RNN hardware library (the templatized streaming components in HLS).
 
 - "host" contains C++ host code to launch the accelerator(s).  
 
