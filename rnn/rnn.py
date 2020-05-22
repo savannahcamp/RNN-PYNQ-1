@@ -30,6 +30,7 @@
 
 import os
 import cffi
+import time
 import numpy as np
 from pynq import Overlay, PL, Xlnk, allocate
 from abc import ABCMeta, abstractmethod, abstractproperty
@@ -97,8 +98,11 @@ class PynqRNN(object):
         self.BLSTM_CTC.input_buffer_V_2 = (self.accel_input_buffer.physical_address >> 32) & 0xffffffff
         self.BLSTM_CTC.output_buffer_V_1 = self.accel_output_buffer.physical_address & 0xffffffff
         self.BLSTM_CTC.output_buffer_V_2 = (self.accel_output_buffer.physical_address >> 32) & 0xffffffff
+        start = time.time()
         self.ExecAccel()
-        
+        end = time.time()
+        print("Inference took = {} ms...".format((end-start)*1000))
+        print("Frames per second = {}".format(1/(end-start)))
         predictions =  np.copy(np.frombuffer(self.accel_output_buffer, dtype=np.uint64))
         return predictions
 

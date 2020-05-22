@@ -42,7 +42,7 @@ class PynqOCR(PynqRNN):
 
     def __init__(self, runtime, dataset, network, precision, load_overlay, preprocessor, bitstream_path=None):
         super(PynqOCR, self).__init__(runtime, dataset, network, precision, load_overlay, bitstream_path)
-        self.alphabet_path = os.path.join(LSTM_DATA_DIR, dataset, "alphabet.txt")
+        self.alphabet_path = os.path.join(RNN_DATA_DIR, dataset, "alphabet.txt")
         self.preprocessor = preprocessor
         self.input_bitwidth = int(precision[-1])
 

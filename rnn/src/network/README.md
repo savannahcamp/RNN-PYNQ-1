@@ -8,7 +8,7 @@ Uni and Bi GRU/LSTM topologies, working on different datasets and multiple preci
 For each dataset, there is a folder structure like this:
 
  - `<dataset>/<network>/WxAy/` contains the exported weights for a specific precision for both weigths (x bits) and activations (y bits)
- 	Note: To use the unidirectional version, when running inference on hardware, uncomment the line for `bidirectional_enabled=False` in the [test_ocr.py](https://github.com/ussamazahid96/LSTM-PYNQ/blob/seq_mnist/tests/test_ocr.py)
+ 	Note: To use the unidirectional version, when running inference on hardware, uncomment the line for `bidirectional_enabled=False` in the [test_ocr.py](https://github.com/ussamazahid96/RNN-PYNQ/blob/master/tests/test_ocr.py)
  - `<dataset>/<network>/top.cpp` is the top level file, synthesized by Vivado HLS, of the RNN accelerator
  - `<dataset>/<network>/hw_config.hpp` contains defines for datatypes used within the RNN cell
 

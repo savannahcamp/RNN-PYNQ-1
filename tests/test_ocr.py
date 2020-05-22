@@ -52,7 +52,7 @@ def test_plain_ocr():
 
 def test_seq_mnist_ocr():
     network = "bigru"
-    precisions = ["W2A2", "W4A4", "W8A8"]#,"W4A4","W4A8", "W8A8"]
+    precisions = ["W2A2", "W4A4", "W8A8"]
     test_dir = os.path.dirname(os.path.realpath(__file__))
     for precision in precisions:
         hw_ocr = rnn.PynqSeqMnistOCR(runtime=rnn.RUNTIME_HW, network=network, precision=precision)
