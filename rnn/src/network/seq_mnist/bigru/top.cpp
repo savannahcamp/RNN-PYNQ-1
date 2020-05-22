@@ -2,7 +2,6 @@
 #include "hardware_lstm.hpp"
 #include "hw_config.hpp"
 #include "r_model_fw_bw.hpp"
-#include<fstream>
 
 void DoCompute(ap_uint<16> numberColumns,
 	    	   ap_uint<16> numberColumnsTwice,
@@ -53,27 +52,6 @@ void DoCompute(ap_uint<16> numberColumns,
 	// This cast will remove the padding from the MSBs..casts intput to output	
 	StreamingCast< ap_uint<StreamPerColumn * DATAWIDTH>, ap_uint<HEIGHT_IN_PIX * PIXELWIDTH> >
 								(stream_column_padded, output_stream_columns, numberColumnsTwice);
-	
-	// std::ofstream ofs("/home/uzahid/personal/LSTM-PYNQ/lstm/src/network/hls.txt");
-	
-
-	// for(auto nf=0; nf<NUMBER_OF_NEURONS/PE; nf++)
-	// {
-	// 	for(auto pe=0; pe<PE; pe++)
-	// 	{
-	// 		for(auto sf=0; sf<NUMBER_OF_NEURONS/SIMD_RECURRENT; sf++)
-	// 		{
-	// 			for (auto simd=0; simd<SIMD_RECURRENT; simd++)
-	// 			{
-	// 				ap_int<WEIGHTWIDTH> wei = wn_hh[simd][sf][pe][nf];
-	// 				t_fixed_wr fwei = *reinterpret_cast<t_fixed_wr*>(&wei);
-	// 				ofs << fwei << '\n';
-	// 			}
-	// 		}
-	// 	}
-	// }
-	// ofs.close();
-	// exit(1);
 
 	GRULayer
 	<
@@ -92,23 +70,6 @@ void DoCompute(ap_uint<16> numberColumns,
 	 wc_ih, wc_hh, bc_ih, bc_hh,  
 	 wn_ih, wn_hh, bn_ih, bn_hh,
 	 lut_sigmoid_1, lut_tanh_1);
-	
-
-	// int s = output_stream_hidden_layer.size();
-	// std::cout << "Size of the Stream = " << s << '\n';
-	// for(int i=0; i<s; i++)
-	// {
-	// 	ap_int<OUTPUTACTIVATIONOUTPUTLAYERWIDTH*PE> temp = output_stream_hidden_layer.read();	
-	// 	// for(int j=0; j<HEIGHT_IN_PIX; j++)
-	// 	// {
-	// 		// ap_int<8> pix = temp((j+1)*8-1, j*8);
-	// 		t_fixed_recurrent fpix = *reinterpret_cast<t_fixed_recurrent*>(&temp); 
-	// 		// std::cout << fpix << '\n';
-	// 		ofs << fpix << '\n'; 
-	// 	// }
-	// }
-	// ofs.close();
-	// exit(1);
 
 	Thresholding_Batch
 	<
@@ -118,7 +79,6 @@ void DoCompute(ap_uint<16> numberColumns,
 	>
 	(output_stream_hidden_layer, output_stream_thresh_layer, thresholds, neg_idx, numberColumns);
 
-
 	StreamingDataWidthConverter_Batch
 	<
 	FCINBITWIDTH * PE, 
@@ -126,23 +86,6 @@ void DoCompute(ap_uint<16> numberColumns,
 	NUMBER_OF_NEURONS/PE
 	>
 	(output_stream_thresh_layer, output_stream_input_streamer, numberColumnsTwice);
-	
-	// int s = output_stream_input_streamer.size();
-	// std::cout << "Size of the Stream = " << s << '\n';
-	// for(int i=0; i<s; i++)
-	// {
-	// 	ap_uint<FCINBITWIDTH * NUMBER_OF_NEURONS> temp = output_stream_input_streamer.read();	
-	// 	for(int j=0; j<NUMBER_OF_NEURONS; j++)
-	// 	{
-	// 		ap_int<FCINBITWIDTH> pix = temp((j+1)*FCINBITWIDTH-1, j*FCINBITWIDTH);
-	// 		t_fixed_fc_in fpix = *reinterpret_cast<t_fixed_fc_in*>(&pix); 
-	// 		// std::cout << fpix << '\n';
-	// 		ofs << fpix << '\n'; 
-	// 	}
-	// 	// ofs << '\n'; 
-	// }
-	// ofs.close();
-	// exit(1);
 
 	OutputLayer
 	<DIRECTIONS,
