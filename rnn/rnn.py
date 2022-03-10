@@ -32,7 +32,7 @@ import os
 import cffi
 import time
 import numpy as np
-from pynq import Overlay, PL, Xlnk, allocate
+from pynq import Overlay, PL, allocate
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 if os.environ['BOARD'] == 'Pynq-Z1' or os.environ['BOARD'] == 'Pynq-Z2':
@@ -127,8 +127,8 @@ class PynqRNN(object):
         return ops * 2 if self.bidirectional_enabled else ops
 
     def cleanup(self):
-        xlnk = Xlnk()
-        xlnk.xlnk_reset()
+        self.freebuffer()
+        #or maybe self.PynqBuffer.freebuffer()?
 
     @abstractproperty
     def input_size(self):
